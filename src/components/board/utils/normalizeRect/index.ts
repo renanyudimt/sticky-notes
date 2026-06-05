@@ -1,0 +1,1 @@
+export { normalizeRect } from './normalizeRect';
