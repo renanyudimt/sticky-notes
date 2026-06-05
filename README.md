@@ -7,16 +7,14 @@ and a couple of shadcn/ui primitives are used only for the surrounding chrome.
 
 ## Features
 
-**Required (all 4):**
-
 1. **Create** a note at a position and size — draw a rubber‑band rectangle on the
-   board, or click to drop a default‑sized note.
+   board, or double click to drop a default‑sized note.
 2. **Resize** a note by dragging any of its **8 handles** (edges + corners), with
    min/max clamping and board‑boundary limits.
 3. **Move** a note by dragging its header.
 4. **Delete** a note by dragging it over the **trash zone** (highlights on hover).
 
-**Bonus (all 5):**
+**Bonus**
 
 - **I** — inline text editing
 - **II** — bring note to front on interaction (z‑ordering)
@@ -37,15 +35,15 @@ npm run dev      # dev server at http://localhost:5175
 
 ## Scripts
 
-| Script | Description |
-|---|---|
-| `npm run dev` | Start the Vite dev server (port **5175**) |
-| `npm run build` | Type‑check (`tsc -b`) and build for production into `dist/` |
-| `npm run preview` | Preview the production build |
-| `npm run lint` | Run ESLint |
-| `npm run test` | Run the unit test suite (Vitest) |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run test:coverage` | Run tests with a coverage report |
+| Script                  | Description                                                 |
+| ----------------------- | ----------------------------------------------------------- |
+| `npm run dev`           | Start the Vite dev server (port **5175**)                   |
+| `npm run build`         | Type‑check (`tsc -b`) and build for production into `dist/` |
+| `npm run preview`       | Preview the production build                                |
+| `npm run lint`          | Run ESLint                                                  |
+| `npm run test`          | Run the unit test suite (Vitest)                            |
+| `npm run test:watch`    | Run tests in watch mode                                     |
+| `npm run test:coverage` | Run tests with a coverage report                            |
 
 ## Browser support
 
