@@ -17,6 +17,10 @@ export interface NotesState {
   status: NotesStatus;
   repositoryKind: RepositoryKind;
 
+  /** Ephemeral drag UI state (never persisted). */
+  draggingId: string | null;
+  isOverTrash: boolean;
+
   hydrate: () => Promise<void>;
   addNote: (input: CreateNoteInput) => Note;
   moveNote: (id: string, position: Position) => void;
@@ -27,6 +31,9 @@ export interface NotesState {
   removeNote: (id: string) => void;
   clear: () => void;
   switchRepository: (kind: RepositoryKind) => Promise<void>;
+
+  setDragging: (id: string | null) => void;
+  setOverTrash: (isOverTrash: boolean) => void;
 }
 
 export type NotesStore = StoreApi<NotesState>;

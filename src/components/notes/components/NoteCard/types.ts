@@ -2,6 +2,8 @@ import type { Note, NoteColor, Position, Rect } from "../../types";
 
 export interface NoteCardProps {
   note: Note;
+  /** Stacking order, derived from the note's index in the board's array. */
+  zIndex: number;
   getBoardRect: () => DOMRect | null;
   isPendingDelete?: boolean;
   onFocus: (id: string) => void;

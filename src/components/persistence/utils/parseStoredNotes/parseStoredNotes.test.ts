@@ -9,7 +9,6 @@ const validNote: Note = {
   size: { width: 100, height: 100 },
   text: "hi",
   color: "yellow",
-  zIndex: 1,
   createdAt: 0,
   updatedAt: 0,
 };

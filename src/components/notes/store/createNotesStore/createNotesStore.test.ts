@@ -56,10 +56,11 @@ describe("createNotesStore", () => {
         persistDelay: 0,
       });
 
-      const first = store.getState().addNote({ position: { x: 0, y: 0 } });
+      store.getState().addNote({ position: { x: 0, y: 0 } });
       const second = store.getState().addNote({ position: { x: 0, y: 0 } });
 
-      expect(second.zIndex).toBeGreaterThan(first.zIndex);
+      // Stacking is the array order: the newest note is last (on top).
+      expect(store.getState().notes.at(-1)?.id).toBe(second.id);
     });
   });
 
@@ -117,18 +118,34 @@ describe("createNotesStore", () => {
   });
 
   describe("bringToFront", () => {
-    it("should raise a buried note above the others", () => {
+    it("should move a buried note to the end of the array", () => {
+      const store = createNotesStore(createMockRepository(), {
+        persistDelay: 0,
+      });
+      const a = store.getState().addNote({ position: { x: 0, y: 0 } });
+      store.getState().addNote({ position: { x: 0, y: 0 } });
+
+      store.getState().bringToFront(a.id);
+
+      // Last in the array == rendered on top.
+      expect(store.getState().notes.at(-1)?.id).toBe(a.id);
+    });
+
+    it("should preserve the relative order of the other notes", () => {
       const store = createNotesStore(createMockRepository(), {
         persistDelay: 0,
       });
       const a = store.getState().addNote({ position: { x: 0, y: 0 } });
       const b = store.getState().addNote({ position: { x: 0, y: 0 } });
+      const c = store.getState().addNote({ position: { x: 0, y: 0 } });
 
       store.getState().bringToFront(a.id);
 
-      const raised = store.getState().notes.find((n) => n.id === a.id)!;
-      const other = store.getState().notes.find((n) => n.id === b.id)!;
-      expect(raised.zIndex).toBeGreaterThan(other.zIndex);
+      expect(store.getState().notes.map((n) => n.id)).toEqual([
+        b.id,
+        c.id,
+        a.id,
+      ]);
     });
 
     it("should be a no-op when the note is already on top", () => {
@@ -137,15 +154,35 @@ describe("createNotesStore", () => {
       });
       store.getState().addNote({ position: { x: 0, y: 0 } });
       const top = store.getState().addNote({ position: { x: 0, y: 0 } });
-      const before = store
-        .getState()
-        .notes.find((n) => n.id === top.id)!.zIndex;
+      const before = store.getState().notes;
 
       store.getState().bringToFront(top.id);
 
-      expect(store.getState().notes.find((n) => n.id === top.id)!.zIndex).toBe(
-        before,
-      );
+      // Same array reference → no re-render, no persist.
+      expect(store.getState().notes).toBe(before);
+    });
+  });
+
+  describe("drag state", () => {
+    it("should track the dragging note id", () => {
+      const store = createNotesStore(createMockRepository(), {
+        persistDelay: 0,
+      });
+
+      store.getState().setDragging("note-1");
+      expect(store.getState().draggingId).toBe("note-1");
+
+      store.getState().setDragging(null);
+      expect(store.getState().draggingId).toBeNull();
+    });
+
+    it("should track the over-trash flag", () => {
+      const store = createNotesStore(createMockRepository(), {
+        persistDelay: 0,
+      });
+
+      store.getState().setOverTrash(true);
+      expect(store.getState().isOverTrash).toBe(true);
     });
   });
 

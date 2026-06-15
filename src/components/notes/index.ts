@@ -12,7 +12,6 @@ export {
   clampSize,
   createNote,
   generateId,
-  nextZIndex,
   rectsIntersect,
   resizeRect,
 } from './utils';
@@ -21,11 +20,15 @@ export {
   createNotesStore,
   NotesProvider,
   NotesStoreContext,
+  useNote,
   useNoteActions,
+  useNoteIds,
+  useNotePendingDelete,
   useNotesList,
   useNotesStatus,
   useNotesStore,
   useRepositoryKind,
+  useTrashActive,
 } from './store';
 export type {
   CreateNotesStoreOptions,
@@ -35,5 +38,11 @@ export type {
   NotesStore,
 } from './store';
 export { useNoteMove, useNoteResize } from './hooks';
-export { NoteCard, NoteColorPicker, NoteEditor, ResizeHandle } from './components';
-export type { NoteCardProps } from './components';
+export {
+  NoteCard,
+  NoteCardConnector,
+  NoteColorPicker,
+  NoteEditor,
+  ResizeHandle,
+} from './components';
+export type { NoteCardProps, NoteCardConnectorProps } from './components';

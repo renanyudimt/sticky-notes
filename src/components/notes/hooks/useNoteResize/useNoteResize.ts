@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 
 import { usePointerDrag } from "@/components/shared";
 
@@ -49,13 +49,16 @@ export function useNoteResize({
     onDragEnd: ({ dx, dy }) => onResizeEnd(resolve(dx, dy)),
   });
 
-  const startResize = (
-    direction: ResizeDirection,
-    event: React.PointerEvent,
-  ) => {
-    directionRef.current = direction;
-    startDrag(event);
-  };
+  // Stable reference so memoized ResizeHandles don't re-render on each keystroke
+  // (typing patches the note → NoteCard re-renders, but the handles' props don't
+  // change). `startDrag` is itself stable; refs make the rest reference-free.
+  const startResize = useCallback(
+    (direction: ResizeDirection, event: React.PointerEvent) => {
+      directionRef.current = direction;
+      startDrag(event);
+    },
+    [startDrag],
+  );
 
   return { isResizing: isDragging, startResize };
 }

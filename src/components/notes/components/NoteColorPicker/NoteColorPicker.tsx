@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 import {
   Popover,
   PopoverContent,
@@ -15,7 +17,7 @@ import {
 } from "./styles";
 import type { NoteColorPickerProps } from "./types";
 
-export function NoteColorPicker({ value, onChange }: NoteColorPickerProps) {
+function NoteColorPickerBase({ value, onChange }: NoteColorPickerProps) {
   return (
     <Popover>
       <PopoverTrigger
@@ -49,3 +51,7 @@ export function NoteColorPicker({ value, onChange }: NoteColorPickerProps) {
     </Popover>
   );
 }
+
+// Memoized so typing in a note (which re-renders NoteCard) does not re-render
+// the color picker; `onChange` is memoized in NoteCard.
+export const NoteColorPicker = memo(NoteColorPickerBase);

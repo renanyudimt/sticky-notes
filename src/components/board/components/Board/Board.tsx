@@ -1,12 +1,12 @@
 import { useRef } from "react";
 
-import { NoteCard } from "@/components/notes";
+import { NoteCardConnector } from "@/components/notes";
 
 import { BOARD_STRINGS } from "../../constants";
 import { useBoardController } from "../../hooks";
 import { CreatePreview } from "../CreatePreview";
 import { Toolbar } from "../Toolbar";
-import { TrashZone } from "../TrashZone";
+import { TrashZoneConnector } from "../TrashZoneConnector";
 import {
   BOARD_ERROR,
   BOARD_HINT,
@@ -20,10 +20,9 @@ export function Board() {
   const controller = useBoardController(boardRef, trashRef);
 
   const {
-    notes,
+    noteIds,
+    noteCount,
     status,
-    draggingId,
-    isOverTrash,
     previewRect,
     isCreating,
     repositoryKind,
@@ -36,12 +35,12 @@ export function Board() {
   } = controller;
 
   const showEmptyHint =
-    status !== "loading" && notes.length === 0 && !isCreating;
+    status !== "loading" && noteCount === 0 && !isCreating;
 
   return (
     <div className="flex h-full flex-col">
       <Toolbar
-        noteCount={notes.length}
+        noteCount={noteCount}
         repositoryKind={repositoryKind}
         onRepositoryChange={onRepositoryChange}
         onClear={onClear}
@@ -54,12 +53,12 @@ export function Board() {
         onDoubleClick={onBoardDoubleClick}
         className={BOARD_SURFACE}
       >
-        {notes.map((note) => (
-          <NoteCard
-            key={note.id}
-            note={note}
+        {noteIds.map((id, index) => (
+          <NoteCardConnector
+            key={id}
+            id={id}
+            zIndex={index}
             getBoardRect={getBoardRect}
-            isPendingDelete={draggingId === note.id && isOverTrash}
             {...noteHandlers}
           />
         ))}
@@ -84,10 +83,7 @@ export function Board() {
           </div>
         )}
 
-        <TrashZone
-          ref={trashRef}
-          isActive={draggingId !== null && isOverTrash}
-        />
+        <TrashZoneConnector ref={trashRef} />
       </div>
     </div>
   );

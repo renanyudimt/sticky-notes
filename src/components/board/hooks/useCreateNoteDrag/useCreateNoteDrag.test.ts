@@ -69,6 +69,18 @@ describe('useCreateNoteDrag', () => {
     expect(onCreate).not.toHaveBeenCalled();
   });
 
+  it('should not show a preview on a plain click', () => {
+    const { result } = renderHook(() =>
+      useCreateNoteDrag({ getBoardRect: () => boardRect, onCreate: vi.fn() }),
+    );
+
+    act(() => result.current.startCreate(pointerDown(400, 300)));
+    expect(result.current.previewRect).toBeNull();
+
+    act(() => dispatch('pointerup', 402, 301));
+    expect(result.current.previewRect).toBeNull();
+  });
+
   it('should clamp the drawn rect to the board bounds', () => {
     const onCreate = vi.fn();
     const { result } = renderHook(() =>

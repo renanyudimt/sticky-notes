@@ -25,7 +25,6 @@ export function createNote(input: CreateNoteInput): Note {
     size,
     text: input.text ?? '',
     color: input.color ?? DEFAULT_NOTE_COLOR,
-    zIndex: input.zIndex ?? 1,
     createdAt: now,
     updatedAt: now,
   };

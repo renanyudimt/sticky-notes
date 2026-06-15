@@ -9,7 +9,6 @@ const note: Note = {
   size: { width: 100, height: 100 },
   text: "",
   color: "blue",
-  zIndex: 1,
   createdAt: 0,
   updatedAt: 0,
 };

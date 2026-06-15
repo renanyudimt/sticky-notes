@@ -5,7 +5,7 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 
 const isNote = (value: unknown): value is Note => {
   if (!isObject(value)) return false;
-  const { id, position, size, text, color, zIndex } = value;
+  const { id, position, size, text, color } = value;
   return (
     typeof id === "string" &&
     isObject(position) &&
@@ -15,8 +15,7 @@ const isNote = (value: unknown): value is Note => {
     typeof size.width === "number" &&
     typeof size.height === "number" &&
     typeof text === "string" &&
-    typeof color === "string" &&
-    typeof zIndex === "number"
+    typeof color === "string"
   );
 };
 

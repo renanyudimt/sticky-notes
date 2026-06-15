@@ -74,6 +74,48 @@ describe('usePointerDrag', () => {
     );
   });
 
+  it('should not start on a sub-threshold click when a threshold is set', () => {
+    const onDragStart = vi.fn();
+    const onDragEnd = vi.fn();
+    const { result } = renderHook(() =>
+      usePointerDrag({ onDragStart, onDragEnd }, 16),
+    );
+
+    act(() => result.current.startDrag(pointerDown({ clientX: 10, clientY: 20 })));
+    expect(result.current.isDragging).toBe(false);
+    expect(onDragStart).not.toHaveBeenCalled();
+
+    act(() => dispatch('pointerup', 12, 21));
+
+    expect(result.current.isDragging).toBe(false);
+    expect(onDragStart).not.toHaveBeenCalled();
+    expect(onDragEnd).not.toHaveBeenCalled();
+  });
+
+  it('should start once movement crosses the threshold', () => {
+    const onDragStart = vi.fn();
+    const onDragMove = vi.fn();
+    const { result } = renderHook(() =>
+      usePointerDrag({ onDragStart, onDragMove }, 16),
+    );
+
+    act(() => result.current.startDrag(pointerDown({ clientX: 10, clientY: 20 })));
+    act(() => dispatch('pointermove', 14, 22));
+
+    expect(onDragStart).not.toHaveBeenCalled();
+    expect(onDragMove).not.toHaveBeenCalled();
+
+    act(() => dispatch('pointermove', 40, 22));
+
+    expect(result.current.isDragging).toBe(true);
+    expect(onDragStart).toHaveBeenCalledTimes(1);
+    expect(onDragMove).toHaveBeenCalledWith(
+      { dx: 30, dy: 2 },
+      { x: 40, y: 22 },
+      expect.any(MouseEvent),
+    );
+  });
+
   it('should stop listening after the gesture ends', () => {
     const onDragMove = vi.fn();
     const { result } = renderHook(() => usePointerDrag({ onDragMove }));
