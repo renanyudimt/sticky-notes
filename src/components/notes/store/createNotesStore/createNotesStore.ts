@@ -8,7 +8,7 @@ import {
 import { debounce } from "@/components/shared";
 
 import type { Note } from "../../types";
-import { createNote, nextZIndex } from "../../utils";
+import { createNote } from "../../utils";
 import { PERSIST_DEBOUNCE } from "../constants";
 import type { CreateNotesStoreOptions, NotesState, NotesStore } from "./types";
 
@@ -42,6 +42,8 @@ export function createNotesStore(
       notes: [],
       status: "idle",
       repositoryKind: options.repositoryKind ?? "local",
+      draggingId: null,
+      isOverTrash: false,
 
       hydrate: async () => {
         set({ status: "loading" });
@@ -54,10 +56,8 @@ export function createNotesStore(
       },
 
       addNote: (input) => {
-        const note = createNote({
-          ...input,
-          zIndex: input.zIndex ?? nextZIndex(get().notes),
-        });
+        const note = createNote(input);
+        // Appended last → rendered on top. Stacking is the array order.
         commit((notes) => [...notes, note]);
         return note;
       },
@@ -76,16 +76,17 @@ export function createNotesStore(
 
       bringToFront: (id) => {
         const { notes } = get();
-        const target = notes.find((note) => note.id === id);
-        if (!target) return;
+        const index = notes.findIndex((note) => note.id === id);
+        // Stacking is the array order: the last note renders on top. Bringing a
+        // note to front = moving it to the end. No-op if missing or already last
+        // (returns the same array reference, so no re-render / persist).
+        if (index === -1 || index === notes.length - 1) return;
 
-        const maxZ = notes.reduce((max, note) => Math.max(max, note.zIndex), 0);
-        const isOnlyTop =
-          target.zIndex === maxZ &&
-          notes.filter((note) => note.zIndex === maxZ).length === 1;
-        if (isOnlyTop) return;
-
-        patch(id, { zIndex: maxZ + 1 });
+        commit((current) => [
+          ...current.slice(0, index),
+          ...current.slice(index + 1),
+          current[index],
+        ]);
       },
 
       removeNote: (id) => commit((notes) => notes.filter((n) => n.id !== id)),
@@ -97,6 +98,11 @@ export function createNotesStore(
         set({ repositoryKind: kind });
         await get().hydrate();
       },
+
+      // Ephemeral drag UI state — kept here (not in component state) so only the
+      // trash zone and the dragged note re-render when it flips, never the board.
+      setDragging: (id) => set({ draggingId: id }),
+      setOverTrash: (isOverTrash) => set({ isOverTrash }),
     };
   });
 }

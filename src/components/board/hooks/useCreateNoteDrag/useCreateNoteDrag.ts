@@ -30,29 +30,30 @@ export function useCreateNoteDrag({
     };
   };
 
-  const { isDragging, startDrag } = usePointerDrag({
-    onDragStart: (origin) => {
-      boardRef.current = getBoardRect();
-      originRef.current = toBoardPoint(origin.x, origin.y);
-      setPreviewRect({ ...originRef.current, width: 0, height: 0 });
+  // The threshold gate means the gesture only starts once the pointer travels
+  // past CREATE_DRAG_THRESHOLD, so a plain click never fires these handlers and
+  // never re-renders the board. By the time onDragEnd runs the drag has already
+  // cleared the threshold, so every release draws a real note.
+  const { isDragging, startDrag } = usePointerDrag(
+    {
+      onDragStart: (origin) => {
+        boardRef.current = getBoardRect();
+        originRef.current = toBoardPoint(origin.x, origin.y);
+        setPreviewRect({ ...originRef.current, width: 0, height: 0 });
+      },
+      onDragMove: (_delta, current) => {
+        const point = toBoardPoint(current.x, current.y);
+        setPreviewRect(normalizeRect(originRef.current, point));
+      },
+      onDragEnd: (_delta, current) => {
+        const point = toBoardPoint(current.x, current.y);
+        const drawn = normalizeRect(originRef.current, point);
+        setPreviewRect(null);
+        onCreate(drawn);
+      },
     },
-    onDragMove: (_delta, current) => {
-      const point = toBoardPoint(current.x, current.y);
-      setPreviewRect(normalizeRect(originRef.current, point));
-    },
-    onDragEnd: (_delta, current) => {
-      const point = toBoardPoint(current.x, current.y);
-      const drawn = normalizeRect(originRef.current, point);
-      setPreviewRect(null);
-
-      const isClick =
-        drawn.width < CREATE_DRAG_THRESHOLD &&
-        drawn.height < CREATE_DRAG_THRESHOLD;
-      if (isClick) return;
-
-      onCreate(drawn);
-    },
-  });
+    CREATE_DRAG_THRESHOLD,
+  );
 
   return { isCreating: isDragging, previewRect, startCreate: startDrag };
 }

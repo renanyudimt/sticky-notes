@@ -4,6 +4,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Toolbar } from './Toolbar';
 
+// Render sentinel: every lucide icon in the toolbar subtree is replaced by a
+// spy. Any icon rendering means the (memoized) toolbar re-rendered; if memo
+// bails out, the whole subtree is skipped and no icon renders.
+const { renderSpy } = vi.hoisted(() => ({ renderSpy: vi.fn() }));
+
+vi.mock('lucide-react', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  const sentinel = () => {
+    renderSpy();
+    return null;
+  };
+  return Object.fromEntries(
+    Object.keys(actual).map((name) => [name, sentinel]),
+  );
+});
+
 const renderToolbar = (props: Partial<Parameters<typeof Toolbar>[0]> = {}) => {
   const onRepositoryChange = vi.fn();
   const onClear = vi.fn();
@@ -62,5 +78,41 @@ describe('Toolbar', () => {
   it('should disable clear when there are no notes', () => {
     renderToolbar({ noteCount: 0 });
     expect(screen.getByRole('button', { name: /Clear all/ })).toBeDisabled();
+  });
+
+  // The Board re-renders on every pointer move during a drag; the toolbar must
+  // not follow when its inputs are unchanged.
+  it('should not re-render when its props are unchanged', () => {
+    const onRepositoryChange = vi.fn();
+    const onClear = vi.fn();
+    const props = {
+      noteCount: 2,
+      repositoryKind: 'local' as const,
+      onRepositoryChange,
+      onClear,
+    };
+
+    const { rerender } = render(<Toolbar {...props} />);
+    renderSpy.mockClear();
+    rerender(<Toolbar {...props} />);
+
+    expect(renderSpy).not.toHaveBeenCalled();
+  });
+
+  it('should re-render when the note count changes', () => {
+    const onRepositoryChange = vi.fn();
+    const onClear = vi.fn();
+    const props = {
+      noteCount: 2,
+      repositoryKind: 'local' as const,
+      onRepositoryChange,
+      onClear,
+    };
+
+    const { rerender } = render(<Toolbar {...props} />);
+    renderSpy.mockClear();
+    rerender(<Toolbar {...props} noteCount={3} />);
+
+    expect(renderSpy).toHaveBeenCalled();
   });
 });

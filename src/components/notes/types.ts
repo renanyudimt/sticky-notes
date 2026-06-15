@@ -33,7 +33,6 @@ export interface Note {
   size: Size;
   text: string;
   color: NoteColor;
-  zIndex: number;
   createdAt: number;
   updatedAt: number;
 }
@@ -44,7 +43,6 @@ export interface CreateNoteInput {
   size?: Partial<Size>;
   color?: NoteColor;
   text?: string;
-  zIndex?: number;
 }
 
 export interface SizeConstraints {

@@ -2,7 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { createRef, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { NotesProvider } from "@/components/notes";
+import { NotesProvider, useNotesList, useNotesStore } from "@/components/notes";
 import type { NotesRepository } from "@/components/persistence";
 
 import { useBoardController } from "./useBoardController";
@@ -31,9 +31,17 @@ const setup = () => {
   boardRef.current = fakeEl({ left: 0, top: 0, width: 1000, height: 800 });
   trashRef.current = fakeEl({ left: 400, top: 700, width: 200, height: 80 });
 
-  const view = renderHook(() => useBoardController(boardRef, trashRef), {
-    wrapper,
-  });
+  // The controller now exposes only note ids and no longer holds drag state;
+  // pull the full list and the over-trash flag from the store alongside it so
+  // the assertions can still inspect positions and drag state.
+  const view = renderHook(
+    () => ({
+      ...useBoardController(boardRef, trashRef),
+      notes: useNotesList(),
+      isOverTrash: useNotesStore((s) => s.isOverTrash),
+    }),
+    { wrapper },
+  );
   return view;
 };
 
@@ -173,5 +181,46 @@ describe("useBoardController", () => {
     act(() => result.current.onClear());
 
     expect(result.current.notes).toHaveLength(0);
+  });
+
+  it("should not re-render the board when drag/over-trash state changes", () => {
+    const boardRef = createRef<HTMLDivElement>();
+    const trashRef = createRef<HTMLDivElement>();
+    boardRef.current = fakeEl({ left: 0, top: 0, width: 1000, height: 800 });
+    trashRef.current = fakeEl({ left: 400, top: 700, width: 200, height: 80 });
+
+    // Subscribe exactly like <Board> does (no drag-state subscription) and count
+    // renders. Drag state lives in the store, so flipping it must not re-render.
+    let renders = 0;
+    const { result } = renderHook(
+      () => {
+        renders++;
+        return useBoardController(boardRef, trashRef);
+      },
+      { wrapper },
+    );
+
+    const el = {};
+    const dblEvent = {
+      target: el,
+      currentTarget: el,
+      clientX: 100,
+      clientY: 100,
+    } as unknown as React.MouseEvent;
+    act(() => result.current.onBoardDoubleClick(dblEvent));
+
+    const id = result.current.noteIds[0];
+    const rendersAfterCreate = renders;
+
+    act(() => {
+      result.current.noteHandlers.onMoveStart(id);
+      result.current.noteHandlers.onMove(
+        id,
+        { x: 420, y: 710 },
+        { x: 420, y: 710, width: 100, height: 100 },
+      );
+    });
+
+    expect(renders).toBe(rendersAfterCreate);
   });
 });

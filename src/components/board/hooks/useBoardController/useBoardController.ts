@@ -1,11 +1,11 @@
-import { useCallback, useMemo, useState, type RefObject } from "react";
+import { useCallback, useMemo, type RefObject } from "react";
 
 import {
   clampPosition,
   DEFAULT_NOTE_SIZE,
   rectsIntersect,
   useNoteActions,
-  useNotesList,
+  useNoteIds,
   useNotesStatus,
   useRepositoryKind,
   type Rect,
@@ -19,13 +19,10 @@ export function useBoardController(
   boardRef: RefObject<HTMLDivElement | null>,
   trashRef: RefObject<HTMLDivElement | null>,
 ): BoardController {
-  const notes = useNotesList();
+  const noteIds = useNoteIds();
   const status = useNotesStatus();
   const repositoryKind = useRepositoryKind();
   const actions = useNoteActions();
-
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [isOverTrash, setIsOverTrash] = useState(false);
 
   const getBoardRect = useCallback(
     () => boardRef.current?.getBoundingClientRect() ?? null,
@@ -81,10 +78,10 @@ export function useBoardController(
   const noteHandlers: NoteInteractionHandlers = useMemo(
     () => ({
       onFocus: actions.bringToFront,
-      onMoveStart: (id) => setDraggingId(id),
+      onMoveStart: (id) => actions.setDragging(id),
       onMove: (id, position, rect) => {
         actions.moveNote(id, position);
-        setIsOverTrash(isOverTrashZone(rect));
+        actions.setOverTrash(isOverTrashZone(rect));
       },
       onMoveEnd: (id, position, rect) => {
         if (isOverTrashZone(rect)) {
@@ -92,8 +89,8 @@ export function useBoardController(
         } else {
           actions.moveNote(id, position);
         }
-        setDraggingId(null);
-        setIsOverTrash(false);
+        actions.setDragging(null);
+        actions.setOverTrash(false);
       },
       onResize: (id, rect) => actions.resizeNote(id, rect),
       onResizeEnd: (id, rect) => actions.resizeNote(id, rect),
@@ -105,10 +102,9 @@ export function useBoardController(
   );
 
   return {
-    notes,
+    noteIds,
+    noteCount: noteIds.length,
     status,
-    draggingId,
-    isOverTrash,
     previewRect,
     isCreating,
     repositoryKind,

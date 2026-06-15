@@ -1,5 +1,4 @@
 import type {
-  Note,
   NoteColor,
   NotesStatus,
   Position,
@@ -20,10 +19,9 @@ export interface NoteInteractionHandlers {
 }
 
 export interface BoardController {
-  notes: Note[];
+  noteIds: string[];
+  noteCount: number;
   status: NotesStatus;
-  draggingId: string | null;
-  isOverTrash: boolean;
   previewRect: Rect | null;
   isCreating: boolean;
   repositoryKind: RepositoryKind;

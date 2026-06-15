@@ -15,7 +15,6 @@ describe('createNote', () => {
     expect(note.size).toEqual(DEFAULT_NOTE_SIZE);
     expect(note.color).toBe(DEFAULT_NOTE_COLOR);
     expect(note.text).toBe('');
-    expect(note.zIndex).toBe(1);
   });
 
   it('should generate a unique id and matching timestamps', () => {
@@ -35,16 +34,14 @@ describe('createNote', () => {
     expect(note.size).toEqual(MIN_NOTE_SIZE);
   });
 
-  it('should honour provided color, text and zIndex', () => {
+  it('should honour provided color and text', () => {
     const note = createNote({
       position: { x: 0, y: 0 },
       color: 'blue',
       text: 'hello',
-      zIndex: 7,
     });
 
     expect(note.color).toBe('blue');
     expect(note.text).toBe('hello');
-    expect(note.zIndex).toBe(7);
   });
 });

@@ -1,10 +1,11 @@
+import { memo, useCallback } from "react";
 import { X } from "lucide-react";
 
 import { cn } from "@/components/shared";
 
 import { useNoteMove } from "../../hooks/useNoteMove";
 import { useNoteResize } from "../../hooks/useNoteResize";
-import type { ResizeDirection } from "../../types";
+import type { NoteColor, ResizeDirection } from "../../types";
 import { NoteColorPicker } from "../NoteColorPicker";
 import { NoteEditor } from "../NoteEditor";
 import { RESIZE_DIRECTIONS, ResizeHandle } from "../ResizeHandle";
@@ -18,8 +19,9 @@ import {
 } from "./styles";
 import type { NoteCardProps } from "./types";
 
-export function NoteCard({
+function NoteCardBase({
   note,
+  zIndex,
   getBoardRect,
   isPendingDelete = false,
   onFocus,
@@ -49,13 +51,26 @@ export function NoteCard({
     onResizeEnd: (rect) => onResizeEnd(id, rect),
   });
 
-  const handleResizeStart = (
-    direction: ResizeDirection,
-    event: React.PointerEvent,
-  ) => {
-    onFocus(id);
-    startResize(direction, event);
-  };
+  // Memoized handlers keep child props referentially stable, so typing (which
+  // re-renders this card via the patched `note`) does not re-render the static
+  // ResizeHandles or the color picker.
+  const handleResizeStart = useCallback(
+    (direction: ResizeDirection, event: React.PointerEvent) => {
+      onFocus(id);
+      startResize(direction, event);
+    },
+    [onFocus, startResize, id],
+  );
+
+  const handleColorChange = useCallback(
+    (color: NoteColor) => onColorChange(id, color),
+    [onColorChange, id],
+  );
+
+  const handleTextChange = useCallback(
+    (text: string) => onTextChange(id, text),
+    [onTextChange, id],
+  );
 
   return (
     <article
@@ -66,7 +81,7 @@ export function NoteCard({
         top: note.position.y,
         width: note.size.width,
         height: note.size.height,
-        zIndex: note.zIndex,
+        zIndex,
       }}
       onPointerDown={() => onFocus(id)}
       className={cn(
@@ -77,10 +92,7 @@ export function NoteCard({
       )}
     >
       <header className={NOTE_HEADER} onPointerDown={startMove}>
-        <NoteColorPicker
-          value={note.color}
-          onChange={(color) => onColorChange(id, color)}
-        />
+        <NoteColorPicker value={note.color} onChange={handleColorChange} />
         <button
           type="button"
           aria-label="Delete note"
@@ -95,7 +107,7 @@ export function NoteCard({
       <NoteEditor
         value={note.text}
         label="Note content"
-        onChange={(text) => onTextChange(id, text)}
+        onChange={handleTextChange}
       />
 
       {RESIZE_DIRECTIONS.map((direction) => (
@@ -108,3 +120,10 @@ export function NoteCard({
     </article>
   );
 }
+
+// Memoized so a drag/resize on one note — which re-renders the Board and the
+// store — does not re-render its siblings. Sibling props are referentially
+// stable: `note` keeps its reference (the store patches only the moved note),
+// `getBoardRect`/handlers are memoized in useBoardController, and
+// `isPendingDelete` stays false for non-dragged notes.
+export const NoteCard = memo(NoteCardBase);

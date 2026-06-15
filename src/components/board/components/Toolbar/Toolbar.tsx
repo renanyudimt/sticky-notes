@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/shared/components/ui";
@@ -15,7 +16,7 @@ import {
 } from "./styles";
 import type { ToolbarProps } from "./types";
 
-export function Toolbar({
+function ToolbarBase({
   noteCount,
   repositoryKind,
   onRepositoryChange,
@@ -68,3 +69,8 @@ export function Toolbar({
     </header>
   );
 }
+
+// Memoized: the Board re-renders on every pointer move during a drag, but the
+// toolbar depends only on `noteCount`/`repositoryKind` (unchanged mid-drag) and
+// store actions (stable refs via useShallow), so memo bails on every move.
+export const Toolbar = memo(ToolbarBase);

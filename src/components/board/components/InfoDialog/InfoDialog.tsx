@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Info } from "lucide-react";
 
 import {
@@ -19,7 +20,7 @@ import {
   INFO_LIST,
 } from "./styles";
 
-export function InfoDialog() {
+function InfoDialogBase() {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -58,3 +59,9 @@ export function InfoDialog() {
     </Dialog>
   );
 }
+
+// Memoized: InfoDialog is fully static (no props), so it bails on every parent
+// re-render. The Toolbar legitimately re-renders when `noteCount` changes
+// (count label + Clear all enabled state); this keeps that from re-rendering
+// the info button along with it.
+export const InfoDialog = memo(InfoDialogBase);
