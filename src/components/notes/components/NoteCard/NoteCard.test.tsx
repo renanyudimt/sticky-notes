@@ -18,19 +18,21 @@ const createMockNote = (overrides: Partial<NoteModel> = {}): NoteModel => ({
   ...overrides,
 });
 
+const createMockHandlers = () => ({
+  getBoardRect: () => ({ width: 1000, height: 800, left: 0, top: 0 }) as DOMRect,
+  onFocus: vi.fn(),
+  onMoveStart: vi.fn(),
+  onMove: vi.fn(),
+  onMoveEnd: vi.fn(),
+  onResize: vi.fn(),
+  onResizeEnd: vi.fn(),
+  onTextChange: vi.fn(),
+  onColorChange: vi.fn(),
+  onDelete: vi.fn(),
+});
+
 const renderNote = (overrides: Partial<NoteModel> = {}) => {
-  const handlers = {
-    getBoardRect: () => ({ width: 1000, height: 800, left: 0, top: 0 }) as DOMRect,
-    onFocus: vi.fn(),
-    onMoveStart: vi.fn(),
-    onMove: vi.fn(),
-    onMoveEnd: vi.fn(),
-    onResize: vi.fn(),
-    onResizeEnd: vi.fn(),
-    onTextChange: vi.fn(),
-    onColorChange: vi.fn(),
-    onDelete: vi.fn(),
-  };
+  const handlers = createMockHandlers();
   const note = createMockNote(overrides);
   render(<NoteCard note={note} zIndex={3} {...handlers} />);
   return { note, ...handlers };
@@ -116,20 +118,7 @@ describe('NoteCard', () => {
 
 describe('NoteCard render count', () => {
   const renderProbed = (overrides: Partial<NoteModel> = {}) => {
-    const handlers = {
-      zIndex: 0,
-      getBoardRect: () =>
-        ({ width: 1000, height: 800, left: 0, top: 0 }) as DOMRect,
-      onFocus: vi.fn(),
-      onMoveStart: vi.fn(),
-      onMove: vi.fn(),
-      onMoveEnd: vi.fn(),
-      onResize: vi.fn(),
-      onResizeEnd: vi.fn(),
-      onTextChange: vi.fn(),
-      onColorChange: vi.fn(),
-      onDelete: vi.fn(),
-    };
+    const handlers = { zIndex: 0, ...createMockHandlers() };
     const counter = createRenderCounter();
     const note = createMockNote(overrides);
     render(
@@ -160,20 +149,7 @@ describe('NoteCard render count', () => {
   // isolate NoteCard's own renders. Instead, a Proxy flags every time NoteCard
   // *reads* the note during render — if React.memo bails out, the render
   // function never runs and the read never happens.
-  const stableHandlers = () => ({
-    zIndex: 0,
-    getBoardRect: () =>
-      ({ width: 1000, height: 800, left: 0, top: 0 }) as DOMRect,
-    onFocus: vi.fn(),
-    onMoveStart: vi.fn(),
-    onMove: vi.fn(),
-    onMoveEnd: vi.fn(),
-    onResize: vi.fn(),
-    onResizeEnd: vi.fn(),
-    onTextChange: vi.fn(),
-    onColorChange: vi.fn(),
-    onDelete: vi.fn(),
-  });
+  const stableHandlers = () => ({ zIndex: 0, ...createMockHandlers() });
 
   const trackRenders = (renderSpy: () => void): NoteModel =>
     new Proxy(createMockNote(), {
