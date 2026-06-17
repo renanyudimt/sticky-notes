@@ -1,25 +1,23 @@
 import { memo } from "react";
 import { Trash2 } from "lucide-react";
 
-import { cn } from "@/components/shared";
-
 import { BOARD_STRINGS } from "../../constants";
-import { TRASH_ACTIVE, TRASH_BASE, TRASH_IDLE } from "./styles";
+import { TrashRegion } from "./styles";
 import type { TrashZoneProps } from "./types";
 
 function TrashZoneBase({ isActive, ref }: TrashZoneProps) {
   return (
-    <div
+    <TrashRegion
       ref={ref}
       data-testid="trash-zone"
       role="region"
       aria-label={BOARD_STRINGS.trashLabel}
       aria-current={isActive}
-      className={cn(TRASH_BASE, isActive ? TRASH_ACTIVE : TRASH_IDLE)}
+      $active={isActive}
     >
-      <Trash2 className={cn("size-6", isActive && "animate-bounce")} />
+      <Trash2 />
       <span>{BOARD_STRINGS.trashLabel}</span>
-    </div>
+    </TrashRegion>
   );
 }
 

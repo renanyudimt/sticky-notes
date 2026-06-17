@@ -1,7 +1,7 @@
-import type { Note, Rect, ResizeDirection } from '../../types';
+import type { NoteView, Rect, ResizeDirection } from '../../types';
 
 export interface UseNoteResizeParams {
-  note: Note;
+  note: NoteView;
   getBoardRect: () => DOMRect | null;
   onResizeStart?: () => void;
   onResize: (rect: Rect) => void;

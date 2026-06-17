@@ -1,17 +1,8 @@
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-
-import { cn } from "@/lib/cn";
-
+import { Description } from "./styles";
 import type { DialogDescriptionProps } from "./types";
 
-function DialogDescription({ className, ...props }: DialogDescriptionProps) {
-  return (
-    <DialogPrimitive.Description
-      data-slot="dialog-description"
-      className={cn("text-muted-foreground text-sm", className)}
-      {...props}
-    />
-  );
+function DialogDescription(props: DialogDescriptionProps) {
+  return <Description {...props} />;
 }
 
 export { DialogDescription };

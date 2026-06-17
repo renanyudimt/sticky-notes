@@ -1,28 +1,57 @@
-import * as PopoverPrimitive from "@radix-ui/react-popover";
+import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
-import { cn } from "@/lib/cn";
-
+import { usePopoverPosition } from "../hooks";
+import { usePopoverContext } from "./context";
+import { Content } from "./styles";
 import type { PopoverContentProps } from "./types";
 
 function PopoverContent({
-  className,
   align = "center",
   sideOffset = 4,
+  style,
   ...props
 }: PopoverContentProps) {
-  return (
-    <PopoverPrimitive.Portal>
-      <PopoverPrimitive.Content
-        data-slot="popover-content"
-        align={align}
-        sideOffset={sideOffset}
-        className={cn(
-          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border p-4 shadow-md outline-hidden",
-          className,
-        )}
-        {...props}
-      />
-    </PopoverPrimitive.Portal>
+  const { open, setOpen, triggerRef } = usePopoverContext();
+  const contentRef = useRef<HTMLDivElement>(null);
+  const position = usePopoverPosition({
+    triggerRef,
+    contentRef,
+    open,
+    align,
+    sideOffset,
+  });
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (contentRef.current?.contains(target)) return;
+      if (triggerRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open, setOpen, triggerRef]);
+
+  if (!open) return null;
+
+  return createPortal(
+    <Content
+      ref={contentRef}
+      style={{ top: position.top, left: position.left, ...style }}
+      {...props}
+    />,
+    document.body,
   );
 }
 

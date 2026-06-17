@@ -1,5 +1,6 @@
-import type { Rect } from "@/components/notes";
+import type { RefObject } from "react";
 
 export interface CreatePreviewProps {
-  rect: Rect;
+  /** Stays mounted and hidden; the drag hook paints it via this ref. */
+  ref: RefObject<HTMLDivElement | null>;
 }

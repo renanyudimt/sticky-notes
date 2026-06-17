@@ -1,22 +1,12 @@
 import { memo, useCallback } from "react";
-import { X } from "lucide-react";
-
-import { cn } from "@/components/shared";
 
 import { useNoteMove } from "../../hooks/useNoteMove";
 import { useNoteResize } from "../../hooks/useNoteResize";
 import type { NoteColor, ResizeDirection } from "../../types";
-import { NoteColorPicker } from "../NoteColorPicker";
-import { NoteEditor } from "../NoteEditor";
+import { NoteCardHeader } from "../NoteCardHeader";
+import { NoteEditorConnector } from "../NoteEditorConnector";
 import { RESIZE_DIRECTIONS, ResizeHandle } from "../ResizeHandle";
-import {
-  NOTE_BASE,
-  NOTE_DELETE_BUTTON,
-  NOTE_HEADER,
-  NOTE_MOVING,
-  NOTE_PENDING_DELETE,
-  NOTE_SURFACE,
-} from "./styles";
+import { NoteSurface } from "./styles";
 import type { NoteCardProps } from "./types";
 
 function NoteCardBase({
@@ -30,7 +20,6 @@ function NoteCardBase({
   onMoveEnd,
   onResize,
   onResizeEnd,
-  onTextChange,
   onColorChange,
   onDelete,
 }: NoteCardProps) {
@@ -51,9 +40,6 @@ function NoteCardBase({
     onResizeEnd: (rect) => onResizeEnd(id, rect),
   });
 
-  // Memoized handlers keep child props referentially stable, so typing (which
-  // re-renders this card via the patched `note`) does not re-render the static
-  // ResizeHandles or the color picker.
   const handleResizeStart = useCallback(
     (direction: ResizeDirection, event: React.PointerEvent) => {
       onFocus(id);
@@ -67,13 +53,10 @@ function NoteCardBase({
     [onColorChange, id],
   );
 
-  const handleTextChange = useCallback(
-    (text: string) => onTextChange(id, text),
-    [onTextChange, id],
-  );
+  const handleDelete = useCallback(() => onDelete(id), [onDelete, id]);
 
   return (
-    <article
+    <NoteSurface
       data-testid={`note-${id}`}
       aria-label="Note"
       style={{
@@ -84,31 +67,18 @@ function NoteCardBase({
         zIndex,
       }}
       onPointerDown={() => onFocus(id)}
-      className={cn(
-        NOTE_BASE,
-        NOTE_SURFACE[note.color],
-        isMoving && NOTE_MOVING,
-        isPendingDelete && NOTE_PENDING_DELETE,
-      )}
+      $color={note.color}
+      $isMoving={isMoving}
+      $isPendingDelete={isPendingDelete}
     >
-      <header className={NOTE_HEADER} onPointerDown={startMove}>
-        <NoteColorPicker value={note.color} onChange={handleColorChange} />
-        <button
-          type="button"
-          aria-label="Delete note"
-          className={NOTE_DELETE_BUTTON}
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={() => onDelete(id)}
-        >
-          <X className="size-3.5" />
-        </button>
-      </header>
-
-      <NoteEditor
-        value={note.text}
-        label="Note content"
-        onChange={handleTextChange}
+      <NoteCardHeader
+        color={note.color}
+        onColorChange={handleColorChange}
+        onDelete={handleDelete}
+        onPointerDown={startMove}
       />
+
+      <NoteEditorConnector id={id} />
 
       {RESIZE_DIRECTIONS.map((direction) => (
         <ResizeHandle
@@ -117,13 +87,8 @@ function NoteCardBase({
           onResizeStart={handleResizeStart}
         />
       ))}
-    </article>
+    </NoteSurface>
   );
 }
 
-// Memoized so a drag/resize on one note — which re-renders the Board and the
-// store — does not re-render its siblings. Sibling props are referentially
-// stable: `note` keeps its reference (the store patches only the moved note),
-// `getBoardRect`/handlers are memoized in useBoardController, and
-// `isPendingDelete` stays false for non-dragged notes.
 export const NoteCard = memo(NoteCardBase);

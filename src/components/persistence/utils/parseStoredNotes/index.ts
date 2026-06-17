@@ -1,1 +1,0 @@
-export { parseStoredNotes } from './parseStoredNotes';

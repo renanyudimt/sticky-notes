@@ -37,6 +37,13 @@ export interface Note {
   updatedAt: number;
 }
 
+/**
+ * A note's layout/style fields — everything but its `text` and timestamps. The
+ * card and the move/resize hooks render from this, so typing (which patches only
+ * `text`) never changes their input and never re-renders the card chrome.
+ */
+export type NoteView = Pick<Note, 'id' | 'position' | 'size' | 'color'>;
+
 /** Minimal shape required to create a note; the rest is derived. */
 export interface CreateNoteInput {
   position: Position;

@@ -1,3 +1,5 @@
+import type { RefObject } from "react";
+
 import type {
   NoteColor,
   NotesStatus,
@@ -13,7 +15,6 @@ export interface NoteInteractionHandlers {
   onMoveEnd: (id: string, position: Position, rect: Rect) => void;
   onResize: (id: string, rect: Rect) => void;
   onResizeEnd: (id: string, rect: Rect) => void;
-  onTextChange: (id: string, text: string) => void;
   onColorChange: (id: string, color: NoteColor) => void;
   onDelete: (id: string) => void;
 }
@@ -22,7 +23,7 @@ export interface BoardController {
   noteIds: string[];
   noteCount: number;
   status: NotesStatus;
-  previewRect: Rect | null;
+  previewRef: RefObject<HTMLDivElement | null>;
   isCreating: boolean;
   repositoryKind: RepositoryKind;
   getBoardRect: () => DOMRect | null;

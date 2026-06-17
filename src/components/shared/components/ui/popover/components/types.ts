@@ -1,10 +1,26 @@
-import * as React from 'react';
-import * as PopoverPrimitive from '@radix-ui/react-popover';
+import type * as React from "react";
 
-export type PopoverProps = React.ComponentProps<typeof PopoverPrimitive.Root>;
-export type PopoverTriggerProps = React.ComponentProps<
-  typeof PopoverPrimitive.Trigger
->;
-export type PopoverContentProps = React.ComponentProps<
-  typeof PopoverPrimitive.Content
->;
+export type PopoverAlign = "start" | "center" | "end";
+
+export interface PopoverContextValue {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  toggle: () => void;
+  triggerRef: React.RefObject<HTMLButtonElement | null>;
+}
+
+export interface PopoverProps {
+  children: React.ReactNode;
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export interface PopoverTriggerProps extends React.ComponentProps<"button"> {
+  asChild?: boolean;
+}
+
+export interface PopoverContentProps extends React.ComponentProps<"div"> {
+  align?: PopoverAlign;
+  sideOffset?: number;
+}

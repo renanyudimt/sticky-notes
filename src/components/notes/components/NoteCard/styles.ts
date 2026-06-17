@@ -1,27 +1,28 @@
-import type { NoteColor } from '../../types';
+import styled from "styled-components";
 
-/** Paper surface (background + border) per color. Notes stay bright in dark mode. */
-export const NOTE_SURFACE: Record<NoteColor, string> = {
-  yellow: 'bg-amber-200 border-amber-300 dark:bg-amber-200/95',
-  pink: 'bg-pink-200 border-pink-300 dark:bg-pink-200/95',
-  blue: 'bg-sky-200 border-sky-300 dark:bg-sky-200/95',
-  green: 'bg-emerald-200 border-emerald-300 dark:bg-emerald-200/95',
-  purple: 'bg-violet-200 border-violet-300 dark:bg-violet-200/95',
-  orange: 'bg-orange-200 border-orange-300 dark:bg-orange-200/95',
-};
+import type { NoteColor } from "../../types";
 
-export const NOTE_BASE = [
-  'group absolute flex flex-col overflow-visible',
-  'rounded-md border shadow-lg ring-1 ring-black/5',
-  'select-none',
-].join(' ');
+export const NoteSurface = styled.article<{
+  $color: NoteColor;
+  $isMoving: boolean;
+  $isPendingDelete: boolean;
+}>`
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  user-select: none;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme, $color }) => theme.noteColors[$color].border};
+  background: ${({ theme, $color }) => theme.noteColors[$color].bg};
+  box-shadow: ${({ theme, $isMoving }) =>
+    `${$isMoving ? theme.shadow.xl2 : theme.shadow.lg}, 0 0 0 1px rgba(0, 0, 0, 0.05)`};
+  opacity: ${({ $isPendingDelete }) => ($isPendingDelete ? 0.4 : 1)};
+  transform: ${({ $isPendingDelete }) =>
+    $isPendingDelete ? "scale(0.95)" : "none"};
+  transition: opacity 0.15s ease, transform 0.15s ease;
 
-export const NOTE_MOVING = 'shadow-2xl';
-
-export const NOTE_PENDING_DELETE = 'scale-95 opacity-40';
-
-export const NOTE_HEADER =
-  'flex shrink-0 cursor-grab items-center justify-between gap-2 px-2 py-1.5 active:cursor-grabbing';
-
-export const NOTE_DELETE_BUTTON =
-  'flex size-5 items-center justify-center rounded text-neutral-700/70 transition-colors hover:bg-black/10 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+  &:hover [data-resize-handle] {
+    opacity: 1;
+  }
+`;

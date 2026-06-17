@@ -17,9 +17,11 @@ export {
 } from './utils';
 export type { ResizeConstraints } from './utils';
 export {
-  createNotesStore,
-  NotesProvider,
-  NotesStoreContext,
+  notesLocalStore,
+  notesRestStore,
+  resetNotesStores,
+  switchBackend,
+  useBackendStore,
   useNote,
   useNoteActions,
   useNoteIds,
@@ -27,22 +29,25 @@ export {
   useNotesList,
   useNotesStatus,
   useNotesStore,
+  useNoteText,
+  useNoteView,
   useRepositoryKind,
   useTrashActive,
 } from './store';
-export type {
-  CreateNotesStoreOptions,
-  NotesProviderProps,
-  NotesState,
-  NotesStatus,
-  NotesStore,
-} from './store';
+export type { NotesState, NotesStatus } from './store';
 export { useNoteMove, useNoteResize } from './hooks';
 export {
   NoteCard,
   NoteCardConnector,
+  NoteCardHeader,
   NoteColorPicker,
   NoteEditor,
+  NoteEditorConnector,
   ResizeHandle,
 } from './components';
-export type { NoteCardProps, NoteCardConnectorProps } from './components';
+export type {
+  NoteCardProps,
+  NoteCardConnectorProps,
+  NoteCardHeaderProps,
+  NoteEditorConnectorProps,
+} from './components';

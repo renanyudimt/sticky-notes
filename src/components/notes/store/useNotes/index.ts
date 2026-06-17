@@ -6,6 +6,8 @@ export {
   useNotesList,
   useNotesStatus,
   useNotesStore,
+  useNoteText,
+  useNoteView,
   useRepositoryKind,
   useTrashActive,
 } from './useNotes';

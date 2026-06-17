@@ -1,13 +1,10 @@
 import { Board } from "@/components/board";
-import { NotesProvider } from "@/components/notes";
-import { useSystemTheme } from "@/components/shared";
+import { ThemeModeProvider } from "@/theme";
 
 export function App() {
-  useSystemTheme();
-
   return (
-    <NotesProvider repositoryKind="local">
+    <ThemeModeProvider>
       <Board />
-    </NotesProvider>
+    </ThemeModeProvider>
   );
 }

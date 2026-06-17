@@ -1,4 +1,5 @@
-export { Button, buttonVariants } from './button';
+export { Button } from "./button";
+export type { ButtonProps, ButtonSize, ButtonVariant } from "./button";
 export {
   Dialog,
   DialogTrigger,
@@ -8,11 +9,5 @@ export {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-} from './dialog';
-export { Popover, PopoverTrigger, PopoverContent } from './popover';
-export {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from './tooltip';
+} from "./dialog";
+export { Popover, PopoverTrigger, PopoverContent } from "./popover";

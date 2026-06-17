@@ -1,7 +1,7 @@
-import type { Note, Position, Rect } from '../../types';
+import type { NoteView, Position, Rect } from '../../types';
 
 export interface UseNoteMoveParams {
-  note: Note;
+  note: NoteView;
   /** Returns the board's bounding rect, used for clamping. */
   getBoardRect: () => DOMRect | null;
   onMoveStart?: () => void;

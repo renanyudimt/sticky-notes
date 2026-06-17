@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test/renderWithTheme';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TrashZone } from './TrashZone';
