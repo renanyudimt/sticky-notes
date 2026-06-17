@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useCallback, useState } from "react";
 
 import {
   Popover,
@@ -14,10 +14,21 @@ import {
   SwatchButton,
 } from "./styles";
 import type { NoteColorPickerProps } from "./types";
+import type { NoteColor } from "../../types";
 
 function NoteColorPickerBase({ value, onChange }: NoteColorPickerProps) {
+  const [open, setOpen] = useState(false);
+
+  const handleSelect = useCallback(
+    (color: NoteColor) => {
+      onChange(color);
+      setOpen(false);
+    },
+    [onChange],
+  );
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <ColorTrigger
           type="button"
@@ -41,7 +52,7 @@ function NoteColorPickerBase({ value, onChange }: NoteColorPickerProps) {
               aria-label={option.label}
               $color={option.value}
               $selected={option.value === value}
-              onClick={() => onChange(option.value)}
+              onClick={() => handleSelect(option.value)}
             />
           ))}
         </ColorGrid>

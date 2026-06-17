@@ -27,6 +27,18 @@ describe('NoteColorPicker', () => {
     expect(onChange).toHaveBeenCalledWith('blue');
   });
 
+  it('should close the popover after a color is selected', async () => {
+    const user = userEvent.setup();
+    render(<NoteColorPicker value="yellow" onChange={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: 'Change note color' }));
+    await user.click(screen.getByRole('option', { name: 'Blue' }));
+
+    expect(
+      screen.queryByRole('option', { name: 'Blue' }),
+    ).not.toBeInTheDocument();
+  });
+
   it('should mark the current color as selected', async () => {
     const user = userEvent.setup();
     render(<NoteColorPicker value="green" onChange={vi.fn()} />);
