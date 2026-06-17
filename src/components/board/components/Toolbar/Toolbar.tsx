@@ -2,57 +2,57 @@ import { memo } from "react";
 import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/shared/components/ui";
-import { cn } from "@/components/shared";
 
 import { BOARD_STRINGS, REPOSITORY_OPTIONS } from "../../constants";
 import { InfoDialog } from "../InfoDialog";
+import { ThemeToggle } from "../ThemeToggle";
 import {
-  SEGMENT_BUTTON,
-  SEGMENT_BUTTON_ACTIVE,
-  SEGMENT_GROUP,
-  TOOLBAR,
-  TOOLBAR_COUNT,
-  TOOLBAR_TITLE,
+  SegmentButton,
+  SegmentGroup,
+  ToolbarBar,
+  ToolbarCount,
+  ToolbarGroup,
+  ToolbarTitle,
+  ToolbarTitleGroup,
 } from "./styles";
 import type { ToolbarProps } from "./types";
 
 function ToolbarBase({
   noteCount,
   repositoryKind,
+  isSwitching,
   onRepositoryChange,
   onClear,
 }: ToolbarProps) {
   return (
-    <header className={TOOLBAR}>
-      <div className="flex items-baseline gap-3">
-        <h1 className={TOOLBAR_TITLE}>{BOARD_STRINGS.appTitle}</h1>
-        <span className={TOOLBAR_COUNT}>
-          {BOARD_STRINGS.noteCount(noteCount)}
-        </span>
-      </div>
+    <ToolbarBar>
+      <ToolbarTitleGroup>
+        <ToolbarTitle>{BOARD_STRINGS.appTitle}</ToolbarTitle>
+        <ToolbarCount>{BOARD_STRINGS.noteCount(noteCount)}</ToolbarCount>
+      </ToolbarTitleGroup>
 
-      <div className="flex items-center gap-3">
-        <div
-          className={SEGMENT_GROUP}
+      <ToolbarGroup>
+        <ThemeToggle />
+
+        <SegmentGroup
           role="radiogroup"
           aria-label={BOARD_STRINGS.storageLabel}
+          aria-busy={isSwitching}
         >
           {REPOSITORY_OPTIONS.map((option) => (
-            <button
+            <SegmentButton
               key={option.value}
               type="button"
               role="radio"
               aria-checked={option.value === repositoryKind}
+              $active={option.value === repositoryKind}
+              disabled={isSwitching}
               onClick={() => onRepositoryChange(option.value)}
-              className={cn(
-                SEGMENT_BUTTON,
-                option.value === repositoryKind && SEGMENT_BUTTON_ACTIVE,
-              )}
             >
               {option.label}
-            </button>
+            </SegmentButton>
           ))}
-        </div>
+        </SegmentGroup>
 
         <InfoDialog />
 
@@ -65,8 +65,8 @@ function ToolbarBase({
           <Trash2 />
           {BOARD_STRINGS.clear}
         </Button>
-      </div>
-    </header>
+      </ToolbarGroup>
+    </ToolbarBar>
   );
 }
 

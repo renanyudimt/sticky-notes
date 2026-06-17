@@ -4,6 +4,7 @@ import {
   clampPosition,
   DEFAULT_NOTE_SIZE,
   rectsIntersect,
+  switchBackend,
   useNoteActions,
   useNoteIds,
   useNotesStatus,
@@ -39,7 +40,7 @@ export function useBoardController(
     [getBoardRect, trashRef],
   );
 
-  const { isCreating, previewRect, startCreate } = useCreateNoteDrag({
+  const { isCreating, previewRef, startCreate } = useCreateNoteDrag({
     getBoardRect,
     onCreate: (rect) =>
       actions.addNote({
@@ -94,7 +95,6 @@ export function useBoardController(
       },
       onResize: (id, rect) => actions.resizeNote(id, rect),
       onResizeEnd: (id, rect) => actions.resizeNote(id, rect),
-      onTextChange: actions.editNoteText,
       onColorChange: actions.changeNoteColor,
       onDelete: actions.removeNote,
     }),
@@ -105,14 +105,14 @@ export function useBoardController(
     noteIds,
     noteCount: noteIds.length,
     status,
-    previewRect,
+    previewRef,
     isCreating,
     repositoryKind,
     getBoardRect,
     onBoardPointerDown,
     onBoardDoubleClick,
     onClear: actions.clear,
-    onRepositoryChange: actions.switchRepository,
+    onRepositoryChange: switchBackend,
     noteHandlers,
   };
 }

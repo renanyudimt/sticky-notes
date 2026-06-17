@@ -1,5 +1,5 @@
-import { renderHook } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, renderHook } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { useSystemTheme } from './useSystemTheme';
 
@@ -17,24 +17,33 @@ const mockMatchMedia = (matches: boolean) => {
 };
 
 describe('useSystemTheme', () => {
-  beforeEach(() => {
-    document.documentElement.classList.remove('dark');
-  });
-
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it('should add the dark class when the OS prefers dark', () => {
+  it('should return dark when the OS prefers dark', () => {
     mockMatchMedia(true);
-    renderHook(() => useSystemTheme());
-    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    const { result } = renderHook(() => useSystemTheme());
+    expect(result.current).toBe('dark');
   });
 
-  it('should not add the dark class when the OS prefers light', () => {
+  it('should return light when the OS prefers light', () => {
     mockMatchMedia(false);
-    renderHook(() => useSystemTheme());
-    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    const { result } = renderHook(() => useSystemTheme());
+    expect(result.current).toBe('light');
+  });
+
+  it('should update the mode when the OS preference changes', () => {
+    const { listeners } = mockMatchMedia(false);
+    const { result } = renderHook(() => useSystemTheme());
+
+    act(() => {
+      listeners.forEach((cb) =>
+        cb({ matches: true } as MediaQueryListEvent),
+      );
+    });
+
+    expect(result.current).toBe('dark');
   });
 
   it('should not throw when matchMedia is unavailable', () => {

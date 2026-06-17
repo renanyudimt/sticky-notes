@@ -1,18 +1,12 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen } from "@/test/renderWithTheme";
 import userEvent from "@testing-library/user-event";
 import { useEffect, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { NotesRepository } from "@/components/persistence";
 import { createRenderCounter, RenderProbe } from "@/test/renderCount";
 
-import { NotesProvider, useNoteActions, useNoteIds } from "../../store";
+import { resetNotesStores, useNoteActions, useNoteIds } from "../../store";
 import { NoteCardConnector } from "./NoteCardConnector";
-
-const repository: NotesRepository = {
-  load: vi.fn().mockResolvedValue([]),
-  save: vi.fn().mockResolvedValue(undefined),
-};
 
 const handlers = {
   zIndex: 0,
@@ -23,7 +17,6 @@ const handlers = {
   onMoveEnd: vi.fn(),
   onResize: vi.fn(),
   onResizeEnd: vi.fn(),
-  onTextChange: vi.fn(),
   onColorChange: vi.fn(),
   onDelete: vi.fn(),
 };
@@ -44,27 +37,23 @@ function Seed({ children }: { children: (id?: string) => ReactNode }) {
   );
 }
 
-const renderInProvider = (ui: ReactNode) =>
-  render(
-    <NotesProvider repository={repository} autoHydrate={false} persistDelay={0}>
-      {ui}
-    </NotesProvider>,
-  );
-
 describe("NoteCardConnector", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetNotesStores();
   });
 
   it("should render nothing for an unknown id", () => {
-    renderInProvider(<NoteCardConnector id="missing" {...handlers} />);
+    render(<NoteCardConnector id="missing" {...handlers} />);
     expect(screen.queryByRole("article", { name: "Note" })).toBeNull();
   });
 
   it("should render the note it sources from the store", async () => {
     const user = userEvent.setup();
-    renderInProvider(
-      <Seed>{(id) => (id ? <NoteCardConnector id={id} {...handlers} /> : null)}</Seed>,
+    render(
+      <Seed>
+        {(id) => (id ? <NoteCardConnector id={id} {...handlers} /> : null)}
+      </Seed>,
     );
 
     expect(screen.queryByRole("article", { name: "Note" })).toBeNull();
@@ -105,7 +94,7 @@ describe("NoteCardConnector", () => {
       );
     }
 
-    renderInProvider(
+    render(
       <>
         <Capture />
         <Cards />

@@ -1,12 +1,12 @@
-export { createNotesStore } from './createNotesStore';
-export type {
-  CreateNotesStoreOptions,
-  NotesState,
-  NotesStatus,
-  NotesStore,
-} from './createNotesStore';
-export { NotesProvider, NotesStoreContext } from './NotesProvider';
-export type { NotesProviderProps } from './NotesProvider';
+export { notesStoreCreator } from "./notesStoreCreator";
+export type { NotesState, NotesStatus } from "./notesStoreCreator";
+export {
+  notesLocalStore,
+  notesRestStore,
+  switchBackend,
+} from "./notesStores";
+export { useBackendStore } from "./backendStore";
+export { resetNotesStores } from "./testing";
 export {
   useNote,
   useNoteActions,
@@ -15,7 +15,9 @@ export {
   useNotesList,
   useNotesStatus,
   useNotesStore,
+  useNoteText,
+  useNoteView,
   useRepositoryKind,
   useTrashActive,
-} from './useNotes';
-export { PERSIST_DEBOUNCE } from './constants';
+} from "./useNotes";
+export { PERSIST_DEBOUNCE } from "./constants";

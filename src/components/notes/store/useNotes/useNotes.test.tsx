@@ -1,10 +1,7 @@
-import { act, render, renderHook, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { act, render, renderHook, screen } from "@/test/renderWithTheme";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { NotesRepository } from "@/components/persistence";
-
-import { NotesProvider } from "../NotesProvider";
+import { resetNotesStores } from "../testing";
 import {
   useNote,
   useNoteActions,
@@ -15,35 +12,17 @@ import {
   useTrashActive,
 } from "./useNotes";
 
-const repository: NotesRepository = {
-  load: vi.fn().mockResolvedValue([]),
-  save: vi.fn().mockResolvedValue(undefined),
-};
-
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <NotesProvider repository={repository} autoHydrate={false} persistDelay={0}>
-    {children}
-  </NotesProvider>
-);
-
 describe("useNotes hooks", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  it("should throw when used outside a NotesProvider", () => {
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(() => renderHook(() => useNotesList())).toThrow(
-      /within a NotesProvider/,
-    );
-    spy.mockRestore();
+    resetNotesStores();
   });
 
   it("should expose the current notes list", () => {
-    const { result } = renderHook(
-      () => ({ list: useNotesList(), actions: useNoteActions() }),
-      { wrapper },
-    );
+    const { result } = renderHook(() => ({
+      list: useNotesList(),
+      actions: useNoteActions(),
+    }));
 
     expect(result.current.list).toHaveLength(0);
 
@@ -55,10 +34,10 @@ describe("useNotes hooks", () => {
   });
 
   it("should keep the id list referentially stable when a note moves", () => {
-    const { result } = renderHook(
-      () => ({ ids: useNoteIds(), actions: useNoteActions() }),
-      { wrapper },
-    );
+    const { result } = renderHook(() => ({
+      ids: useNoteIds(),
+      actions: useNoteActions(),
+    }));
 
     let id = "";
     act(() => {
@@ -82,7 +61,6 @@ describe("useNotes hooks", () => {
         const first = useNote(ids[0]);
         return { actions, ids, first };
       },
-      { wrapper },
     );
 
     let id = "";
@@ -112,7 +90,6 @@ describe("useNotes hooks", () => {
           pending: useNotePendingDelete(id),
         };
       },
-      { wrapper },
     );
 
     act(() => {
@@ -136,18 +113,14 @@ describe("useNotes hooks", () => {
     expect(result.current.pending).toBe(false);
   });
 
-  it("should re-render consumers when a note changes", () => {
+  it("should expose the active store status to consumers", () => {
     function StatusProbe() {
       const status = useNotesStatus();
       return <span>{status}</span>;
     }
 
-    render(
-      <NotesProvider repository={repository} autoHydrate={false}>
-        <StatusProbe />
-      </NotesProvider>,
-    );
+    render(<StatusProbe />);
 
-    expect(screen.getByText("idle")).toBeInTheDocument();
+    expect(screen.getByText("ready")).toBeInTheDocument();
   });
 });

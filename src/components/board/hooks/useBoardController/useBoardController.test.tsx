@@ -1,25 +1,13 @@
 import { act, renderHook } from "@testing-library/react";
-import { createRef, type ReactNode } from "react";
+import { createRef } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { NotesProvider, useNotesList, useNotesStore } from "@/components/notes";
-import type { NotesRepository } from "@/components/persistence";
+import { resetNotesStores, useNotesList, useNotesStore } from "@/components/notes";
 
 import { useBoardController } from "./useBoardController";
 
-const repository: NotesRepository = {
-  load: vi.fn().mockResolvedValue([]),
-  save: vi.fn().mockResolvedValue(undefined),
-};
-
 const fakeEl = (rect: Partial<DOMRect>) =>
   ({ getBoundingClientRect: () => rect as DOMRect }) as HTMLDivElement;
-
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <NotesProvider repository={repository} autoHydrate={false} persistDelay={0}>
-    {children}
-  </NotesProvider>
-);
 
 const dispatch = (type: string, clientX: number, clientY: number) => {
   window.dispatchEvent(new MouseEvent(type, { clientX, clientY }));
@@ -40,7 +28,6 @@ const setup = () => {
       notes: useNotesList(),
       isOverTrash: useNotesStore((s) => s.isOverTrash),
     }),
-    { wrapper },
   );
   return view;
 };
@@ -83,6 +70,7 @@ const clickBoardAt = (
 describe("useBoardController", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetNotesStores();
   });
 
   it("should start with no notes", () => {
@@ -197,7 +185,6 @@ describe("useBoardController", () => {
         renders++;
         return useBoardController(boardRef, trashRef);
       },
-      { wrapper },
     );
 
     const el = {};

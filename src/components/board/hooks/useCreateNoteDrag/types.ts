@@ -1,3 +1,5 @@
+import type { RefObject } from "react";
+
 import type { Rect } from "@/components/notes";
 
 export interface UseCreateNoteDragParams {
@@ -7,6 +9,7 @@ export interface UseCreateNoteDragParams {
 
 export interface UseCreateNoteDragResult {
   isCreating: boolean;
-  previewRect: Rect | null;
+  /** Attach to the always-mounted preview element; painted imperatively. */
+  previewRef: RefObject<HTMLDivElement | null>;
   startCreate: (event: React.PointerEvent) => void;
 }

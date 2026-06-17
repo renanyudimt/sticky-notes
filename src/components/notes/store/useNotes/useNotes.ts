@@ -1,20 +1,19 @@
-import { useContext } from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-import { NotesStoreContext } from "../NotesProvider";
-import type { NotesState } from "../createNotesStore";
+import type { NoteView } from "../../types";
+import { useBackendStore } from "../backendStore";
+import type { NotesState } from "../notesStoreCreator";
+import { notesLocalStore, notesRestStore } from "../notesStores";
 
-function useStoreApi() {
-  const store = useContext(NotesStoreContext);
-  if (store === null) {
-    throw new Error("useNotes hooks must be used within a NotesProvider");
-  }
-  return store;
+/** The store backing the active backend — switching kinds re-subscribes the hooks. */
+function useActiveNotesStore() {
+  const kind = useBackendStore((state) => state.kind);
+  return kind === "rest" ? notesRestStore : notesLocalStore;
 }
 
 export function useNotesStore<T>(selector: (state: NotesState) => T): T {
-  return useStore(useStoreApi(), selector);
+  return useStore(useActiveNotesStore(), selector);
 }
 
 export function useNotesList() {
@@ -40,6 +39,36 @@ export function useNote(id: string) {
   return useNotesStore((state) => state.notes.find((note) => note.id === id));
 }
 
+/**
+ * A single note's text. A primitive selector, so editing one note's text
+ * re-renders only that note's editor — never the card chrome or its siblings.
+ */
+export function useNoteText(id: string) {
+  return useNotesStore(
+    (state) => state.notes.find((note) => note.id === id)?.text ?? "",
+  );
+}
+
+/**
+ * A note's layout/style fields, shallow-compared. Typing patches only `text`
+ * (and `updatedAt`), so `position`/`size`/`color` keep their values and this
+ * bails — the card and its chrome stay put while only the editor re-renders.
+ */
+export function useNoteView(id: string): NoteView | undefined {
+  return useNotesStore(
+    useShallow((state) => {
+      const note = state.notes.find((item) => item.id === id);
+      if (!note) return undefined;
+      return {
+        id: note.id,
+        position: note.position,
+        size: note.size,
+        color: note.color,
+      };
+    }),
+  );
+}
+
 /** True while a note is being dragged onto the trash zone. */
 export function useTrashActive() {
   return useNotesStore(
@@ -59,7 +88,7 @@ export function useNotesStatus() {
 }
 
 export function useRepositoryKind() {
-  return useNotesStore((state) => state.repositoryKind);
+  return useBackendStore((state) => state.kind);
 }
 
 export function useNoteActions() {
@@ -73,7 +102,6 @@ export function useNoteActions() {
       bringToFront: state.bringToFront,
       removeNote: state.removeNote,
       clear: state.clear,
-      switchRepository: state.switchRepository,
       setDragging: state.setDragging,
       setOverTrash: state.setOverTrash,
     })),

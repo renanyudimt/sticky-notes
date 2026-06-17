@@ -1,7 +1,11 @@
-import type { Note, NoteColor, Position, Rect } from "../../types";
+import type { NoteColor, NoteView, Position, Rect } from "../../types";
 
 export interface NoteCardProps {
-  note: Note;
+  /**
+   * The note's layout/style fields. Excludes `text` (owned by NoteEditorConnector)
+   * so typing never re-renders the card.
+   */
+  note: NoteView;
   /** Stacking order, derived from the note's index in the board's array. */
   zIndex: number;
   getBoardRect: () => DOMRect | null;
@@ -12,7 +16,6 @@ export interface NoteCardProps {
   onMoveEnd: (id: string, position: Position, rect: Rect) => void;
   onResize: (id: string, rect: Rect) => void;
   onResizeEnd: (id: string, rect: Rect) => void;
-  onTextChange: (id: string, text: string) => void;
   onColorChange: (id: string, color: NoteColor) => void;
   onDelete: (id: string) => void;
 }

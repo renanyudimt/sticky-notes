@@ -1,21 +1,56 @@
-import type { NoteColor } from '../../types';
+import styled from "styled-components";
 
-/** Solid swatch color used in the picker dots and trigger. */
-export const NOTE_SWATCH: Record<NoteColor, string> = {
-  yellow: 'bg-amber-300',
-  pink: 'bg-pink-300',
-  blue: 'bg-sky-300',
-  green: 'bg-emerald-300',
-  purple: 'bg-violet-300',
-  orange: 'bg-orange-300',
-};
+import type { NoteColor } from "../../types";
 
-export const COLOR_TRIGGER =
-  'size-5 rounded-full border border-black/20 shadow-sm transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+export const ColorTrigger = styled.button<{ $color: NoteColor }>`
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  box-shadow: ${({ theme }) => theme.shadow.sm};
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  background: ${({ theme, $color }) => theme.noteColors[$color].border};
 
-export const COLOR_GRID = 'grid grid-cols-3 gap-2';
+  &:hover {
+    transform: scale(1.1);
+  }
 
-export const COLOR_SWATCH_BUTTON =
-  'size-7 rounded-full border border-black/20 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.ring};
+    outline-offset: 1px;
+  }
+`;
 
-export const COLOR_SWATCH_SELECTED = 'ring-2 ring-ring ring-offset-2';
+export const ColorGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+`;
+
+export const SwatchButton = styled.button<{
+  $color: NoteColor;
+  $selected: boolean;
+}>`
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  background: ${({ theme, $color }) => theme.noteColors[$color].border};
+  outline: ${({ theme, $selected }) =>
+    $selected ? `2px solid ${theme.colors.ring}` : "none"};
+  outline-offset: 2px;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.ring};
+    outline-offset: 2px;
+  }
+`;
+
+export const POPOVER_AUTO_WIDTH = { width: "auto" } as const;

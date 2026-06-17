@@ -1,12 +1,58 @@
-export const INFO_LIST =
-  'mt-2 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1';
+import styled from "styled-components";
 
-export const INFO_ITEM = 'flex items-start gap-3';
+export const InfoList = styled.ul`
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex: 1 1 0%;
+  min-height: 0;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+`;
 
-export const INFO_ICON =
-  'mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-foreground';
+export const InfoItem = styled.li`
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+`;
 
-export const INFO_ITEM_TITLE = 'text-sm font-medium leading-none';
+export const InfoIcon = styled.span`
+  margin-top: 0.125rem;
+  display: flex;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.colors.muted};
+  color: ${({ theme }) => theme.colors.foreground};
 
-export const INFO_ITEM_DESCRIPTION =
-  'mt-1 text-sm leading-relaxed text-muted-foreground';
+  & svg {
+    width: 1rem;
+    height: 1rem;
+  }
+`;
+
+export const InfoItemTitle = styled.p`
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+`;
+
+export const InfoItemDescription = styled.p`
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: ${({ theme }) => theme.colors.mutedForeground};
+`;
+
+export const INFO_CONTENT_STYLE = {
+  display: "flex",
+  flexDirection: "column",
+  maxHeight: "85vh",
+} as const;

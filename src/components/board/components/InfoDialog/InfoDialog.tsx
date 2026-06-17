@@ -13,11 +13,12 @@ import {
 
 import { INFO_DIALOG, INFO_SECTIONS } from "./constants";
 import {
-  INFO_ICON,
-  INFO_ITEM,
-  INFO_ITEM_DESCRIPTION,
-  INFO_ITEM_TITLE,
-  INFO_LIST,
+  INFO_CONTENT_STYLE,
+  InfoIcon,
+  InfoItem,
+  InfoItemDescription,
+  InfoItemTitle,
+  InfoList,
 } from "./styles";
 
 function InfoDialogBase() {
@@ -33,28 +34,30 @@ function InfoDialogBase() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="flex max-h-[85vh] flex-col">
+      <DialogContent style={INFO_CONTENT_STYLE}>
         <DialogHeader>
           <DialogTitle>{INFO_DIALOG.title}</DialogTitle>
           <DialogDescription>{INFO_DIALOG.description}</DialogDescription>
         </DialogHeader>
 
-        <ul className={INFO_LIST}>
+        <InfoList>
           {INFO_SECTIONS.map((section) => {
             const Icon = section.icon;
             return (
-              <li key={section.title} className={INFO_ITEM}>
-                <span className={INFO_ICON} aria-hidden>
-                  <Icon className="size-4" />
-                </span>
+              <InfoItem key={section.title}>
+                <InfoIcon aria-hidden>
+                  <Icon />
+                </InfoIcon>
                 <div>
-                  <p className={INFO_ITEM_TITLE}>{section.title}</p>
-                  <p className={INFO_ITEM_DESCRIPTION}>{section.description}</p>
+                  <InfoItemTitle>{section.title}</InfoItemTitle>
+                  <InfoItemDescription>
+                    {section.description}
+                  </InfoItemDescription>
                 </div>
-              </li>
+              </InfoItem>
             );
           })}
-        </ul>
+        </InfoList>
       </DialogContent>
     </Dialog>
   );

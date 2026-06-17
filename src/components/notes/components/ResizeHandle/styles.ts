@@ -1,26 +1,77 @@
+import styled, { css } from "styled-components";
+
 import type { ResizeDirection } from "../../types";
 
-export const HANDLE_POSITION: Record<ResizeDirection, string> = {
-  nw: "top-0 left-0 -translate-x-1/2 -translate-y-1/2",
-  n: "top-0 left-1/2 -translate-x-1/2 -translate-y-1/2",
-  ne: "top-0 right-0 translate-x-1/2 -translate-y-1/2",
-  e: "top-1/2 right-0 translate-x-1/2 -translate-y-1/2",
-  se: "bottom-0 right-0 translate-x-1/2 translate-y-1/2",
-  s: "bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2",
-  sw: "bottom-0 left-0 -translate-x-1/2 translate-y-1/2",
-  w: "top-1/2 left-0 -translate-x-1/2 -translate-y-1/2",
+const POSITION: Record<ResizeDirection, ReturnType<typeof css>> = {
+  nw: css`
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%);
+  `,
+  n: css`
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  `,
+  ne: css`
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+  `,
+  e: css`
+    top: 50%;
+    right: 0;
+    transform: translate(50%, -50%);
+  `,
+  se: css`
+    bottom: 0;
+    right: 0;
+    transform: translate(50%, 50%);
+  `,
+  s: css`
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 50%);
+  `,
+  sw: css`
+    bottom: 0;
+    left: 0;
+    transform: translate(-50%, 50%);
+  `,
+  w: css`
+    top: 50%;
+    left: 0;
+    transform: translate(-50%, -50%);
+  `,
 };
 
-export const HANDLE_CURSOR: Record<ResizeDirection, string> = {
-  n: "cursor-ns-resize",
-  s: "cursor-ns-resize",
-  e: "cursor-ew-resize",
-  w: "cursor-ew-resize",
-  ne: "cursor-nesw-resize",
-  sw: "cursor-nesw-resize",
-  nw: "cursor-nwse-resize",
-  se: "cursor-nwse-resize",
+const CURSOR: Record<ResizeDirection, string> = {
+  n: "ns-resize",
+  s: "ns-resize",
+  e: "ew-resize",
+  w: "ew-resize",
+  ne: "nesw-resize",
+  sw: "nesw-resize",
+  nw: "nwse-resize",
+  se: "nwse-resize",
 };
 
-export const HANDLE_BASE =
-  "absolute z-10 size-3 rounded-full border border-black/30 bg-white shadow-sm opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 dark:border-white/40 dark:bg-neutral-200";
+export const Handle = styled.div<{ $direction: ResizeDirection }>`
+  position: absolute;
+  z-index: 10;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  background: #ffffff;
+  box-shadow: ${({ theme }) => theme.shadow.sm};
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  cursor: ${({ $direction }) => CURSOR[$direction]};
+
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  ${({ $direction }) => POSITION[$direction]}
+`;

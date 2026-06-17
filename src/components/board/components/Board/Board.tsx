@@ -8,22 +8,26 @@ import { CreatePreview } from "../CreatePreview";
 import { Toolbar } from "../Toolbar";
 import { TrashZoneConnector } from "../TrashZoneConnector";
 import {
-  BOARD_ERROR,
-  BOARD_HINT,
-  BOARD_OVERLAY,
-  BOARD_SURFACE,
+  BoardError,
+  BoardHint,
+  BoardLayout,
+  BoardLoading,
+  BoardOverlay,
+  BoardSurface,
+  Spinner,
 } from "./styles";
 
 export function Board() {
   const boardRef = useRef<HTMLDivElement>(null);
   const trashRef = useRef<HTMLDivElement>(null);
+
   const controller = useBoardController(boardRef, trashRef);
 
   const {
     noteIds,
     noteCount,
     status,
-    previewRect,
+    previewRef,
     isCreating,
     repositoryKind,
     getBoardRect,
@@ -34,57 +38,60 @@ export function Board() {
     noteHandlers,
   } = controller;
 
-  const showEmptyHint =
-    status !== "loading" && noteCount === 0 && !isCreating;
+  const showEmptyHint = status !== "loading" && noteCount === 0 && !isCreating;
 
   return (
-    <div className="flex h-full flex-col">
+    <BoardLayout>
       <Toolbar
         noteCount={noteCount}
         repositoryKind={repositoryKind}
+        isSwitching={status === "loading"}
         onRepositoryChange={onRepositoryChange}
         onClear={onClear}
       />
 
-      <div
+      <BoardSurface
         ref={boardRef}
         data-testid="board"
         onPointerDown={onBoardPointerDown}
         onDoubleClick={onBoardDoubleClick}
-        className={BOARD_SURFACE}
       >
-        {noteIds.map((id, index) => (
-          <NoteCardConnector
-            key={id}
-            id={id}
-            zIndex={index}
-            getBoardRect={getBoardRect}
-            {...noteHandlers}
-          />
-        ))}
+        {status !== "loading" &&
+          noteIds.map((id, index) => (
+            <NoteCardConnector
+              key={id}
+              id={id}
+              zIndex={index}
+              getBoardRect={getBoardRect}
+              {...noteHandlers}
+            />
+          ))}
 
-        {previewRect && <CreatePreview rect={previewRect} />}
+        <CreatePreview ref={previewRef} />
 
         {status === "loading" && (
-          <div className={BOARD_OVERLAY}>
-            <p className={BOARD_HINT}>{BOARD_STRINGS.loading}</p>
-          </div>
+          <BoardOverlay role="status" aria-live="polite">
+            <BoardLoading>
+              <Spinner aria-hidden="true" />
+              <BoardHint>{BOARD_STRINGS.loading}</BoardHint>
+            </BoardLoading>
+          </BoardOverlay>
         )}
 
         {status === "error" && (
-          <div className={BOARD_OVERLAY}>
-            <p className={BOARD_ERROR}>{BOARD_STRINGS.error}</p>
-          </div>
+          <BoardOverlay>
+            <BoardError>{BOARD_STRINGS.error}</BoardError>
+          </BoardOverlay>
         )}
 
         {showEmptyHint && (
-          <div className={BOARD_OVERLAY}>
-            <p className={BOARD_HINT}>{BOARD_STRINGS.emptyHint}</p>
-          </div>
+          <BoardOverlay>
+            <BoardHint>{BOARD_STRINGS.emptyHint}</BoardHint>
+          </BoardOverlay>
         )}
 
         <TrashZoneConnector ref={trashRef} />
-      </div>
-    </div>
+      </BoardSurface>
+    </BoardLayout>
   );
 }

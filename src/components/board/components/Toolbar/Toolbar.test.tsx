@@ -1,6 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test/renderWithTheme';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { ThemeModeProvider } from '@/theme';
 
 import { Toolbar } from './Toolbar';
 
@@ -27,9 +29,11 @@ const renderToolbar = (props: Partial<Parameters<typeof Toolbar>[0]> = {}) => {
     <Toolbar
       noteCount={props.noteCount ?? 2}
       repositoryKind={props.repositoryKind ?? 'local'}
+      isSwitching={props.isSwitching ?? false}
       onRepositoryChange={onRepositoryChange}
       onClear={onClear}
     />,
+    { wrapper: ThemeModeProvider },
   );
   return { onRepositoryChange, onClear };
 };
@@ -66,6 +70,24 @@ describe('Toolbar', () => {
     expect(onRepositoryChange).toHaveBeenCalledWith('rest');
   });
 
+  it('should disable the repository toggle while switching', () => {
+    renderToolbar({ isSwitching: true });
+    expect(screen.getByRole('radio', { name: 'Local' })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: 'API' })).toBeDisabled();
+  });
+
+  it('should not switch repository while a switch is in flight', async () => {
+    const { onRepositoryChange } = renderToolbar({
+      repositoryKind: 'local',
+      isSwitching: true,
+    });
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('radio', { name: 'API' }));
+
+    expect(onRepositoryChange).not.toHaveBeenCalled();
+  });
+
   it('should clear notes when the clear button is clicked', async () => {
     const { onClear } = renderToolbar({ noteCount: 2 });
     const user = userEvent.setup();
@@ -88,11 +110,14 @@ describe('Toolbar', () => {
     const props = {
       noteCount: 2,
       repositoryKind: 'local' as const,
+      isSwitching: false,
       onRepositoryChange,
       onClear,
     };
 
-    const { rerender } = render(<Toolbar {...props} />);
+    const { rerender } = render(<Toolbar {...props} />, {
+      wrapper: ThemeModeProvider,
+    });
     renderSpy.mockClear();
     rerender(<Toolbar {...props} />);
 
@@ -105,11 +130,14 @@ describe('Toolbar', () => {
     const props = {
       noteCount: 2,
       repositoryKind: 'local' as const,
+      isSwitching: false,
       onRepositoryChange,
       onClear,
     };
 
-    const { rerender } = render(<Toolbar {...props} />);
+    const { rerender } = render(<Toolbar {...props} />, {
+      wrapper: ThemeModeProvider,
+    });
     renderSpy.mockClear();
     rerender(<Toolbar {...props} noteCount={3} />);
 
