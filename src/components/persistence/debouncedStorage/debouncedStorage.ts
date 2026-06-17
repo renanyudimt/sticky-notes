@@ -18,7 +18,7 @@ export function createDebouncedStorage(
   wait: number,
 ): DebouncedStateStorage {
   const flush = debounce((name: string, value: string) => {
-    void base.setItem(name, value);
+    base.setItem(name, value);
   }, wait);
 
   return {

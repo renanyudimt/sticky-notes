@@ -72,9 +72,7 @@ describe("NoteCard", () => {
     const element = screen.getByTestId(`note-${note.id}`);
     const handles = within(element)
       .getAllByRole("button")
-      .filter((node) =>
-        node.getAttribute("data-testid")?.startsWith("resize-"),
-      );
+      .filter((node) => node.dataset.testid?.startsWith("resize-"));
     expect(handles).toHaveLength(8);
   });
 

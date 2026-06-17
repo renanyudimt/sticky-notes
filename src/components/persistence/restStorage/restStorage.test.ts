@@ -6,8 +6,12 @@ const createMemoryStorage = () => {
   const map = new Map<string, string>();
   return {
     getItem: vi.fn((key: string) => map.get(key) ?? null),
-    setItem: vi.fn((key: string, value: string) => void map.set(key, value)),
-    removeItem: vi.fn((key: string) => void map.delete(key)),
+    setItem: vi.fn((key: string, value: string) => {
+      map.set(key, value);
+    }),
+    removeItem: vi.fn((key: string) => {
+      map.delete(key);
+    }),
   };
 };
 
