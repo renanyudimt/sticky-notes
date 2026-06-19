@@ -1,7 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { X } from "lucide-react";
 
-import { useFocusTrap } from "../hooks";
 import { useDialogContext } from "./context";
 import { DialogOverlay } from "./DialogOverlay";
 import { DialogPortal } from "./DialogPortal";
@@ -10,9 +9,6 @@ import type { DialogContentProps } from "./types";
 
 function DialogContent({ children, ...props }: DialogContentProps) {
   const { open, setOpen } = useDialogContext();
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  useFocusTrap(contentRef, open);
 
   useEffect(() => {
     if (!open) return;
@@ -35,14 +31,15 @@ function DialogContent({ children, ...props }: DialogContentProps) {
 
   return (
     <DialogPortal>
-      <DialogOverlay onClick={() => setOpen(false)} />
-      <Content
-        ref={contentRef}
-        role="dialog"
-        aria-modal="true"
-        tabIndex={-1}
-        {...props}
-      >
+      {/* Stop pointer-down here so a click on the overlay (or anything that
+          bubbles through the portal's React tree) never reaches interactive
+          ancestors behind the modal — e.g. a note's drag handle when the
+          dialog is opened from inside a NoteCard. onClick still fires. */}
+      <DialogOverlay
+        onPointerDown={(event) => event.stopPropagation()}
+        onClick={() => setOpen(false)}
+      />
+      <Content role="dialog" {...props}>
         {children}
         <CloseButton type="button" onClick={() => setOpen(false)}>
           <X />

@@ -1,3 +1,4 @@
+export { buildSeedNotes } from './buildSeedNotes';
 export { clampPosition } from './clampPosition';
 export { clampSize } from './clampSize';
 export { createNote } from './createNote';

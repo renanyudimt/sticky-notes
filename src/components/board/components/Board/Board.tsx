@@ -26,28 +26,31 @@ export function Board() {
   const {
     noteIds,
     noteCount,
-    status,
+    isLoading,
+    isError,
     previewRef,
     isCreating,
-    repositoryKind,
+    dataSource,
     getBoardRect,
     onBoardPointerDown,
     onBoardDoubleClick,
     onClear,
-    onRepositoryChange,
+    onSeed,
+    onDataSourceChange,
     noteHandlers,
   } = controller;
 
-  const showEmptyHint = status !== "loading" && noteCount === 0 && !isCreating;
+  const showEmptyHint = !isLoading && noteCount === 0 && !isCreating;
 
   return (
     <BoardLayout>
       <Toolbar
         noteCount={noteCount}
-        repositoryKind={repositoryKind}
-        isSwitching={status === "loading"}
-        onRepositoryChange={onRepositoryChange}
+        dataSource={dataSource}
+        isSwitching={isLoading}
+        onDataSourceChange={onDataSourceChange}
         onClear={onClear}
+        onSeed={onSeed}
       />
 
       <BoardSurface
@@ -56,7 +59,7 @@ export function Board() {
         onPointerDown={onBoardPointerDown}
         onDoubleClick={onBoardDoubleClick}
       >
-        {status !== "loading" &&
+        {!isLoading &&
           noteIds.map((id, index) => (
             <NoteCardConnector
               key={id}
@@ -69,7 +72,7 @@ export function Board() {
 
         <CreatePreview ref={previewRef} />
 
-        {status === "loading" && (
+        {isLoading && (
           <BoardOverlay role="status" aria-live="polite">
             <BoardLoading>
               <Spinner aria-hidden="true" />
@@ -78,7 +81,7 @@ export function Board() {
           </BoardOverlay>
         )}
 
-        {status === "error" && (
+        {isError && (
           <BoardOverlay>
             <BoardError>{BOARD_STRINGS.error}</BoardError>
           </BoardOverlay>

@@ -1,10 +1,9 @@
 import { memo } from "react";
-import { X } from "lucide-react";
 
+import { DeleteNoteDialog } from "../DeleteNoteDialog";
 import { NoteColorPicker } from "../NoteColorPicker";
-import { NoteDeleteButton, NoteHeader } from "./styles";
+import { NoteHeader } from "./styles";
 import type { NoteCardHeaderProps } from "./types";
-import { stopPropagation } from "./constants";
 
 function NoteCardHeaderBase({
   color,
@@ -13,16 +12,9 @@ function NoteCardHeaderBase({
   onPointerDown,
 }: NoteCardHeaderProps) {
   return (
-    <NoteHeader onPointerDown={onPointerDown}>
+    <NoteHeader data-testid="note-drag-handle" onPointerDown={onPointerDown}>
       <NoteColorPicker value={color} onChange={onColorChange} />
-      <NoteDeleteButton
-        type="button"
-        aria-label="Delete note"
-        onPointerDown={stopPropagation}
-        onClick={onDelete}
-      >
-        <X />
-      </NoteDeleteButton>
+      <DeleteNoteDialog onConfirm={onDelete} />
     </NoteHeader>
   );
 }

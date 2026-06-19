@@ -1,11 +1,20 @@
-import { act, render, screen } from "@/test/renderWithTheme";
+import { act, render, screen, waitFor } from "@/test/renderWithTheme";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import userEvent from "@testing-library/user-event";
 import { useEffect, type ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createRenderCounter, RenderProbe } from "@/test/renderCount";
+import {
+  notesLocalStore,
+  resetDataSourceStore,
+  resetNotesStore,
+  useNoteIds,
+  useNotesMutations,
+  type NotesMutations,
+} from "@/components/notes";
+import type { Note } from "@/services/notes";
 
-import { resetNotesStores, useNoteActions, useNoteIds } from "../../store";
 import { NoteCardConnector } from "./NoteCardConnector";
 
 const handlers = {
@@ -18,17 +27,41 @@ const handlers = {
   onResize: vi.fn(),
   onResizeEnd: vi.fn(),
   onColorChange: vi.fn(),
+  onEditText: vi.fn(),
   onDelete: vi.fn(),
 };
 
+const createMockNote = (overrides: Partial<Note> = {}): Note => ({
+  id: "note-1",
+  position: { x: 0, y: 0 },
+  size: { width: 220, height: 220 },
+  text: "",
+  color: "yellow",
+  createdAt: 1,
+  updatedAt: 1,
+  ...overrides,
+});
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+  return ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+};
+
 function Seed({ children }: { children: (id?: string) => ReactNode }) {
-  const actions = useNoteActions();
+  const mutations = useNotesMutations();
   const ids = useNoteIds();
   return (
     <>
       <button
         type="button"
-        onClick={() => actions.addNote({ position: { x: 12, y: 34 } })}
+        onClick={() => mutations.createNote({ position: { x: 12, y: 34 } })}
       >
         add
       </button>
@@ -40,20 +73,30 @@ function Seed({ children }: { children: (id?: string) => ReactNode }) {
 describe("NoteCardConnector", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    resetNotesStores();
+    resetNotesStore();
+    window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    resetNotesStore();
+    resetDataSourceStore();
+    window.localStorage.clear();
   });
 
   it("should render nothing for an unknown id", () => {
-    render(<NoteCardConnector id="missing" {...handlers} />);
+    render(<NoteCardConnector id="missing" {...handlers} />, {
+      wrapper: createWrapper(),
+    });
     expect(screen.queryByRole("article", { name: "Note" })).toBeNull();
   });
 
-  it("should render the note it sources from the store", async () => {
+  it("should render the note it sources from the query", async () => {
     const user = userEvent.setup();
     render(
       <Seed>
         {(id) => (id ? <NoteCardConnector id={id} {...handlers} /> : null)}
       </Seed>,
+      { wrapper: createWrapper() },
     );
 
     expect(screen.queryByRole("article", { name: "Note" })).toBeNull();
@@ -67,17 +110,18 @@ describe("NoteCardConnector", () => {
   // The core win of the granular subscriptions: moving one note re-renders only
   // its own connector. The probes share a parent that subscribes to the (stable)
   // id list, so a sibling's probe fires only if the sibling itself commits.
-  it("should re-render only the moved note's connector", () => {
+  it("should re-render only the moved note's connector", async () => {
+    notesLocalStore.setState({
+      notes: [createMockNote({ id: "a" }), createMockNote({ id: "b" })],
+    });
     const counter = createRenderCounter();
-    const actionsRef: { current: ReturnType<typeof useNoteActions> | null } = {
-      current: null,
-    };
+    const mutationsRef: { current: NotesMutations | null } = { current: null };
 
     function Capture() {
-      const actions = useNoteActions();
+      const mutations = useNotesMutations();
       useEffect(() => {
-        actionsRef.current = actions;
-      }, [actions]);
+        mutationsRef.current = mutations;
+      }, [mutations]);
       return null;
     }
 
@@ -99,21 +143,17 @@ describe("NoteCardConnector", () => {
         <Capture />
         <Cards />
       </>,
+      { wrapper: createWrapper() },
     );
 
-    let a = "";
-    let b = "";
-    act(() => {
-      a = actionsRef.current!.addNote({ position: { x: 0, y: 0 } }).id;
-      b = actionsRef.current!.addNote({ position: { x: 0, y: 0 } }).id;
-    });
+    await waitFor(() => expect(mutationsRef.current).not.toBeNull());
 
     counter.reset();
     act(() => {
-      actionsRef.current!.moveNote(a, { x: 200, y: 200 });
+      mutationsRef.current!.patchNote("a", { position: { x: 200, y: 200 } });
     });
 
-    expect(counter.count(a)).toBeGreaterThan(0);
-    expect(counter.count(b)).toBe(0);
+    await waitFor(() => expect(counter.count("a")).toBeGreaterThan(0));
+    expect(counter.count("b")).toBe(0);
   });
 });

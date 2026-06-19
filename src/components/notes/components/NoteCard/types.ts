@@ -17,5 +17,7 @@ export interface NoteCardProps {
   onResize: (id: string, rect: Rect) => void;
   onResizeEnd: (id: string, rect: Rect) => void;
   onColorChange: (id: string, color: NoteColor) => void;
-  onDelete: (id: string) => void;
+  onEditText: (id: string, text: string) => void;
+  /** Resolves when the delete request settles, so the dialog can close on success. */
+  onDelete: (id: string) => Promise<void>;
 }

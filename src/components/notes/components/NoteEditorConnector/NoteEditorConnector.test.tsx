@@ -1,22 +1,56 @@
-import { act, render, screen } from "@/test/renderWithTheme";
+import { act, render, screen, waitFor } from "@/test/renderWithTheme";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import userEvent from "@testing-library/user-event";
 import { useEffect, type ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createRenderCounter, RenderProbe } from "@/test/renderCount";
+import {
+  notesLocalStore,
+  resetDataSourceStore,
+  resetNotesStore,
+  useNoteIds,
+  useNotesMutations,
+  type NotesMutations,
+} from "@/components/notes";
+import type { Note } from "@/services/notes";
 
-import { resetNotesStores, useNoteActions, useNoteIds } from "../../store";
 import { NoteEditorConnector } from "./NoteEditorConnector";
 
+const onEditText = vi.fn();
+
+const createMockNote = (overrides: Partial<Note> = {}): Note => ({
+  id: "note-1",
+  position: { x: 0, y: 0 },
+  size: { width: 220, height: 220 },
+  text: "",
+  color: "yellow",
+  createdAt: 1,
+  updatedAt: 1,
+  ...overrides,
+});
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+  return ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+};
+
 function Seed({ children }: { children: (id?: string) => ReactNode }) {
-  const actions = useNoteActions();
+  const mutations = useNotesMutations();
   const ids = useNoteIds();
   return (
     <>
       <button
         type="button"
         onClick={() =>
-          actions.addNote({ position: { x: 0, y: 0 }, text: "hello" })
+          mutations.createNote({ position: { x: 0, y: 0 }, text: "hello" })
         }
       >
         add
@@ -29,13 +63,25 @@ function Seed({ children }: { children: (id?: string) => ReactNode }) {
 describe("NoteEditorConnector", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    resetNotesStores();
+    resetNotesStore();
+    window.localStorage.clear();
   });
 
-  it("should render the note's text sourced from the store", async () => {
+  afterEach(() => {
+    resetNotesStore();
+    resetDataSourceStore();
+    window.localStorage.clear();
+  });
+
+  it("should render the note's committed text", async () => {
     const user = userEvent.setup();
     render(
-      <Seed>{(id) => (id ? <NoteEditorConnector id={id} /> : null)}</Seed>,
+      <Seed>
+        {(id) =>
+          id ? <NoteEditorConnector id={id} onEditText={onEditText} /> : null
+        }
+      </Seed>,
+      { wrapper: createWrapper() },
     );
 
     await user.click(screen.getByRole("button", { name: "add" }));
@@ -45,10 +91,15 @@ describe("NoteEditorConnector", () => {
     ).toHaveValue("hello");
   });
 
-  it("should reflect typed text driven by the store", async () => {
+  it("should reflect typed text locally", async () => {
     const user = userEvent.setup();
     render(
-      <Seed>{(id) => (id ? <NoteEditorConnector id={id} /> : null)}</Seed>,
+      <Seed>
+        {(id) =>
+          id ? <NoteEditorConnector id={id} onEditText={onEditText} /> : null
+        }
+      </Seed>,
+      { wrapper: createWrapper() },
     );
 
     await user.click(screen.getByRole("button", { name: "add" }));
@@ -62,17 +113,18 @@ describe("NoteEditorConnector", () => {
     expect(textarea).toHaveValue("x");
   });
 
-  it("should not re-render when an unrelated note's text changes", () => {
+  it("should not re-render when an unrelated note's text changes", async () => {
+    notesLocalStore.setState({
+      notes: [createMockNote({ id: "a" }), createMockNote({ id: "b" })],
+    });
     const counter = createRenderCounter();
-    const actionsRef: { current: ReturnType<typeof useNoteActions> | null } = {
-      current: null,
-    };
+    const mutationsRef: { current: NotesMutations | null } = { current: null };
 
     function Capture() {
-      const actions = useNoteActions();
+      const mutations = useNotesMutations();
       useEffect(() => {
-        actionsRef.current = actions;
-      }, [actions]);
+        mutationsRef.current = mutations;
+      }, [mutations]);
       return null;
     }
 
@@ -82,7 +134,7 @@ describe("NoteEditorConnector", () => {
         <>
           {ids.map((id) => (
             <RenderProbe key={id} id={id} onRender={counter.onRender}>
-              <NoteEditorConnector id={id} />
+              <NoteEditorConnector id={id} onEditText={onEditText} />
             </RenderProbe>
           ))}
         </>
@@ -94,21 +146,17 @@ describe("NoteEditorConnector", () => {
         <Capture />
         <Editors />
       </>,
+      { wrapper: createWrapper() },
     );
 
-    let a = "";
-    let b = "";
-    act(() => {
-      a = actionsRef.current!.addNote({ position: { x: 0, y: 0 } }).id;
-      b = actionsRef.current!.addNote({ position: { x: 0, y: 0 } }).id;
-    });
+    await waitFor(() => expect(mutationsRef.current).not.toBeNull());
 
     counter.reset();
     act(() => {
-      actionsRef.current!.editNoteText(a, "typed");
+      mutationsRef.current!.patchNote("a", { text: "typed" });
     });
 
-    expect(counter.count(a)).toBeGreaterThan(0);
-    expect(counter.count(b)).toBe(0);
+    await waitFor(() => expect(counter.count("a")).toBeGreaterThan(0));
+    expect(counter.count("b")).toBe(0);
   });
 });

@@ -11,3 +11,6 @@ export {
   DialogDescription,
 } from "./dialog";
 export { Popover, PopoverTrigger, PopoverContent } from "./popover";
+export { Spinner } from "./spinner";
+export { Toaster, toast, dismissToast, useToasts } from "./toast";
+export type { Toast, ToastType } from "./toast";

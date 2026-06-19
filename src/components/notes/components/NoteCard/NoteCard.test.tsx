@@ -34,6 +34,7 @@ const createMockHandlers = () => ({
   onResize: vi.fn(),
   onResizeEnd: vi.fn(),
   onColorChange: vi.fn(),
+  onEditText: vi.fn(),
   onDelete: vi.fn(),
 });
 
@@ -88,13 +89,56 @@ describe("NoteCard", () => {
     expect(onFocus).toHaveBeenCalledWith(note.id);
   });
 
-  it("should emit delete when the close button is clicked", async () => {
+  it("should start a move when pressing the drag handle", async () => {
+    const { onMoveStart, note } = renderNote();
+    const user = userEvent.setup();
+
+    await user.pointer({
+      target: screen.getByTestId("note-drag-handle"),
+      keys: "[MouseLeft>]",
+    });
+
+    expect(onMoveStart).toHaveBeenCalledWith(note.id);
+  });
+
+  // Regression: pressing the drag handle must NOT bubble to the surface's
+  // `onFocus`. Focusing reorders the notes array (stacking) and moves this DOM
+  // node mid-press, which cancels the just-started pointer drag — the reason a
+  // note used to need a click before it could be dragged.
+  it("should not focus the note when pressing the drag handle", async () => {
+    const { onFocus } = renderNote();
+    const user = userEvent.setup();
+
+    await user.pointer({
+      target: screen.getByTestId("note-drag-handle"),
+      keys: "[MouseLeft>]",
+    });
+
+    expect(onFocus).not.toHaveBeenCalled();
+  });
+
+  it("should emit delete when the deletion is confirmed", async () => {
     const { onDelete, note } = renderNote();
     const user = userEvent.setup();
 
     await user.click(screen.getByRole("button", { name: "Delete note" }));
+    await user.click(screen.getByRole("button", { name: "Delete" }));
 
     expect(onDelete).toHaveBeenCalledWith(note.id);
+  });
+
+  // The delete dialog renders in a portal, so its pointer events bubble through
+  // the React tree back into the card's drag handle. Guard against that leaking
+  // a phantom move/focus when the user just interacts with the dialog.
+  it("should not start a move or focus the note when dismissing the dialog", async () => {
+    const { onMoveStart, onFocus } = renderNote();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "Delete note" }));
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(onMoveStart).not.toHaveBeenCalled();
+    expect(onFocus).not.toHaveBeenCalled();
   });
 
   it("should emit a color change from the picker", async () => {

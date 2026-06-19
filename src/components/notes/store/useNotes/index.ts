@@ -1,13 +1,3 @@
-export {
-  useNote,
-  useNoteActions,
-  useNoteIds,
-  useNotePendingDelete,
-  useNotesList,
-  useNotesStatus,
-  useNotesStore,
-  useNoteText,
-  useNoteView,
-  useRepositoryKind,
-  useTrashActive,
-} from './useNotes';
+export { useLocalNoteIds } from "./useLocalNoteIds";
+export { useLocalNoteView } from "./useLocalNoteView";
+export { useLocalNoteText } from "./useLocalNoteText";

@@ -37,13 +37,15 @@ describe("NoteCardHeader", () => {
     vi.clearAllMocks();
   });
 
-  it("should emit delete when the close button is clicked", async () => {
+  it("should emit delete only after the deletion is confirmed", async () => {
     const props = createProps();
     const user = userEvent.setup();
     render(<NoteCardHeader {...props} />);
 
     await user.click(screen.getByRole("button", { name: "Delete note" }));
+    expect(props.onDelete).not.toHaveBeenCalled();
 
+    await user.click(screen.getByRole("button", { name: "Delete" }));
     expect(props.onDelete).toHaveBeenCalledTimes(1);
   });
 

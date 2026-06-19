@@ -1,8 +1,15 @@
-import { act, renderHook } from "@testing-library/react";
-import { createRef } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createRef, type ReactNode } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { resetNotesStores, useNotesList, useNotesStore } from "@/components/notes";
+import {
+  getDragState,
+  notesLocalStore,
+  resetDataSourceStore,
+  resetDragState,
+  resetNotesStore,
+} from "@/components/notes";
 
 import { useBoardController } from "./useBoardController";
 
@@ -13,26 +20,36 @@ const dispatch = (type: string, clientX: number, clientY: number) => {
   window.dispatchEvent(new MouseEvent(type, { clientX, clientY }));
 };
 
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+  return ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+};
+
 const setup = () => {
   const boardRef = createRef<HTMLDivElement>();
   const trashRef = createRef<HTMLDivElement>();
   boardRef.current = fakeEl({ left: 0, top: 0, width: 1000, height: 800 });
   trashRef.current = fakeEl({ left: 400, top: 700, width: 200, height: 80 });
 
-  // The controller now exposes only note ids and no longer holds drag state;
-  // pull the full list and the over-trash flag from the store alongside it so
-  // the assertions can still inspect positions and drag state.
-  const view = renderHook(
+  // The controller exposes only note ids; pull the full list from the local
+  // store alongside it so the assertions can still inspect positions.
+  return renderHook(
     () => ({
       ...useBoardController(boardRef, trashRef),
-      notes: useNotesList(),
-      isOverTrash: useNotesStore((s) => s.isOverTrash),
+      notes: notesLocalStore((state) => state.notes),
     }),
+    { wrapper: createWrapper() },
   );
-  return view;
 };
 
-const createNoteAt = (
+const doubleClickAt = (
   result: ReturnType<typeof setup>["result"],
   x: number,
   y: number,
@@ -46,6 +63,16 @@ const createNoteAt = (
   } as unknown as React.MouseEvent;
 
   act(() => result.current.onBoardDoubleClick(event));
+};
+
+const createNoteAt = async (
+  result: ReturnType<typeof setup>["result"],
+  x: number,
+  y: number,
+  expectedCount: number,
+) => {
+  doubleClickAt(result, x, y);
+  await waitFor(() => expect(result.current.notes).toHaveLength(expectedCount));
 };
 
 const clickBoardAt = (
@@ -70,7 +97,16 @@ const clickBoardAt = (
 describe("useBoardController", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    resetNotesStores();
+    resetNotesStore();
+    window.localStorage.clear();
+    resetDragState();
+  });
+
+  afterEach(() => {
+    resetNotesStore();
+    resetDataSourceStore();
+    window.localStorage.clear();
+    resetDragState();
   });
 
   it("should start with no notes", () => {
@@ -78,12 +114,11 @@ describe("useBoardController", () => {
     expect(result.current.notes).toHaveLength(0);
   });
 
-  it("should create a default note centered on a double-click", () => {
+  it("should create a default note centered on a double-click", async () => {
     const { result } = setup();
 
-    createNoteAt(result, 120, 140);
+    await createNoteAt(result, 120, 140, 1);
 
-    expect(result.current.notes).toHaveLength(1);
     // 220x220 default note centered on the cursor: 120-110, 140-110
     expect(result.current.notes[0].position).toEqual({ x: 10, y: 30 });
   });
@@ -96,9 +131,9 @@ describe("useBoardController", () => {
     expect(result.current.notes).toHaveLength(0);
   });
 
-  it("should move a note via the move handler", () => {
+  it("should move a note via the move handler", async () => {
     const { result } = setup();
-    createNoteAt(result, 100, 100);
+    await createNoteAt(result, 100, 100, 1);
     const id = result.current.notes[0].id;
 
     act(() =>
@@ -109,12 +144,14 @@ describe("useBoardController", () => {
       ),
     );
 
-    expect(result.current.notes[0].position).toEqual({ x: 250, y: 260 });
+    await waitFor(() =>
+      expect(result.current.notes[0].position).toEqual({ x: 250, y: 260 }),
+    );
   });
 
-  it("should flag isOverTrash while moving onto the trash zone", () => {
+  it("should flag isOverTrash while moving onto the trash zone", async () => {
     const { result } = setup();
-    createNoteAt(result, 100, 100);
+    await createNoteAt(result, 100, 100, 1);
     const id = result.current.notes[0].id;
 
     act(() =>
@@ -125,12 +162,12 @@ describe("useBoardController", () => {
       ),
     );
 
-    expect(result.current.isOverTrash).toBe(true);
+    expect(getDragState().isOverTrash).toBe(true);
   });
 
-  it("should delete the note when released over the trash zone", () => {
+  it("should delete the note when released over the trash zone", async () => {
     const { result } = setup();
-    createNoteAt(result, 100, 100);
+    await createNoteAt(result, 100, 100, 1);
     const id = result.current.notes[0].id;
 
     act(() =>
@@ -141,12 +178,12 @@ describe("useBoardController", () => {
       ),
     );
 
-    expect(result.current.notes).toHaveLength(0);
+    await waitFor(() => expect(result.current.notes).toHaveLength(0));
   });
 
-  it("should keep the note when released away from the trash zone", () => {
+  it("should keep the note when released away from the trash zone", async () => {
     const { result } = setup();
-    createNoteAt(result, 100, 100);
+    await createNoteAt(result, 100, 100, 1);
     const id = result.current.notes[0].id;
 
     act(() =>
@@ -158,33 +195,66 @@ describe("useBoardController", () => {
     );
 
     expect(result.current.notes).toHaveLength(1);
-    expect(result.current.isOverTrash).toBe(false);
+    expect(getDragState().isOverTrash).toBe(false);
   });
 
-  it("should clear all notes", () => {
+  it("should bring the note to front when released away from the trash zone", async () => {
     const { result } = setup();
-    createNoteAt(result, 100, 100);
-    createNoteAt(result, 200, 200);
+    await createNoteAt(result, 100, 100, 1);
+    await createNoteAt(result, 200, 200, 2);
+    const id = result.current.notes[0].id;
 
-    act(() => result.current.onClear());
+    act(() =>
+      result.current.noteHandlers.onMoveEnd(
+        id,
+        { x: 50, y: 50 },
+        { x: 50, y: 50, width: 100, height: 100 },
+      ),
+    );
 
-    expect(result.current.notes).toHaveLength(0);
+    const last = result.current.notes[result.current.notes.length - 1];
+    expect(last.id).toBe(id);
   });
 
-  it("should not re-render the board when drag/over-trash state changes", () => {
+  it("should clear all notes", async () => {
+    const { result } = setup();
+    await createNoteAt(result, 100, 100, 1);
+    await createNoteAt(result, 200, 200, 2);
+
+    await act(async () => {
+      await result.current.onClear();
+    });
+
+    await waitFor(() => expect(result.current.notes).toHaveLength(0));
+  });
+
+  it("should keep onSeed referentially stable across re-renders", () => {
+    // The toolbar is memoized; an unstable onSeed would defeat its memo and
+    // re-render it on every board render (e.g. when a create-drag starts).
+    const { result, rerender } = setup();
+    const first = result.current.onSeed;
+
+    rerender();
+
+    expect(result.current.onSeed).toBe(first);
+  });
+
+  it("should not re-render the board when drag/over-trash state changes", async () => {
     const boardRef = createRef<HTMLDivElement>();
     const trashRef = createRef<HTMLDivElement>();
     boardRef.current = fakeEl({ left: 0, top: 0, width: 1000, height: 800 });
     trashRef.current = fakeEl({ left: 400, top: 700, width: 200, height: 80 });
 
     // Subscribe exactly like <Board> does (no drag-state subscription) and count
-    // renders. Drag state lives in the store, so flipping it must not re-render.
+    // renders. Drag state lives in its own store, so flipping it must not
+    // re-render the board.
     let renders = 0;
     const { result } = renderHook(
       () => {
         renders++;
         return useBoardController(boardRef, trashRef);
       },
+      { wrapper: createWrapper() },
     );
 
     const el = {};
@@ -195,6 +265,7 @@ describe("useBoardController", () => {
       clientY: 100,
     } as unknown as React.MouseEvent;
     act(() => result.current.onBoardDoubleClick(dblEvent));
+    await waitFor(() => expect(result.current.noteIds).toHaveLength(1));
 
     const id = result.current.noteIds[0];
     const rendersAfterCreate = renders;

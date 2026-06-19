@@ -1,23 +1,11 @@
 export { notesStoreCreator } from "./notesStoreCreator";
-export type { NotesState, NotesStatus } from "./notesStoreCreator";
+export { notesLocalStore } from "./notesLocalStore";
+export { dataSourceStore } from "./dataSourceStore";
+export type { DataSourceState } from "./dataSourceStore";
 export {
-  notesLocalStore,
-  notesRestStore,
-  switchBackend,
-} from "./notesStores";
-export { useBackendStore } from "./backendStore";
-export { resetNotesStores } from "./testing";
-export {
-  useNote,
-  useNoteActions,
-  useNoteIds,
-  useNotePendingDelete,
-  useNotesList,
-  useNotesStatus,
-  useNotesStore,
-  useNoteText,
-  useNoteView,
-  useRepositoryKind,
-  useTrashActive,
+  useLocalNoteIds,
+  useLocalNoteView,
+  useLocalNoteText,
 } from "./useNotes";
-export { PERSIST_DEBOUNCE } from "./constants";
+export { resetNotesStore, resetDataSourceStore } from "./testing";
+export type { NotesState } from "./types";

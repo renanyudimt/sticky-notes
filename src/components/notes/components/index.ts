@@ -1,3 +1,5 @@
+export { DeleteNoteDialog } from './DeleteNoteDialog';
+export type { DeleteNoteDialogProps } from './DeleteNoteDialog';
 export { NoteCard } from './NoteCard';
 export type { NoteCardProps } from './NoteCard';
 export { NoteCardConnector } from './NoteCardConnector';

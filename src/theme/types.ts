@@ -29,6 +29,14 @@ export interface NoteSurfaceColor {
   border: string;
 }
 
+export type ToastKind = "success" | "error";
+
+export interface ToastSurface {
+  bg: string;
+  border: string;
+  fg: string;
+}
+
 export interface ThemeRadius {
   sm: string;
   md: string;
@@ -51,5 +59,6 @@ export interface AppTheme {
   radius: ThemeRadius;
   shadow: ThemeShadow;
   noteColors: Record<NoteColor, NoteSurfaceColor>;
+  toast: Record<ToastKind, ToastSurface>;
   font: { sans: string };
 }
