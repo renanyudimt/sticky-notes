@@ -3,7 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 import { NOTES_STORAGE_KEY, type Note } from "@/services/notes";
 
-import { createNote, nextZIndex } from "../../utils";
+import { createNote } from "../../utils";
 import type { NotesState } from "./types";
 
 const creator: StateCreator<NotesState> = (set, get) => {
@@ -14,7 +14,7 @@ const creator: StateCreator<NotesState> = (set, get) => {
     notes: [],
 
     addNote: (input) => {
-      const note = createNote(input, nextZIndex(get().notes));
+      const note = createNote(input);
       commit((notes) => [...notes, note]);
       return note;
     },
@@ -30,20 +30,15 @@ const creator: StateCreator<NotesState> = (set, get) => {
 
     bringToFront: (id) => {
       const { notes } = get();
-      const note = notes.find((item) => item.id === id);
-      if (!note) return;
+      const index = notes.findIndex((note) => note.id === id);
 
-      const top = Math.max(...notes.map((item) => item.zIndex));
-      const isUniqueTop =
-        note.zIndex === top &&
-        notes.filter((item) => item.zIndex === top).length === 1;
-      if (isUniqueTop) return;
+      if (index === -1 || index === notes.length - 1) return;
 
-      commit((current) =>
-        current.map((item) =>
-          item.id === id ? { ...item, zIndex: top + 1 } : item,
-        ),
-      );
+      commit((current) => [
+        ...current.slice(0, index),
+        ...current.slice(index + 1),
+        current[index],
+      ]);
     },
 
     removeNote: (id) =>

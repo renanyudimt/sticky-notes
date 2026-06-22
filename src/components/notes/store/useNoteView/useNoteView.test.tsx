@@ -21,9 +21,7 @@ describe("useNoteView", () => {
 
   it("should return the note's layout/style slice", () => {
     notesLocalStore.setState({
-      notes: [
-        createMockNote({ position: { x: 10, y: 20 }, color: "blue", zIndex: 4 }),
-      ],
+      notes: [createMockNote({ position: { x: 10, y: 20 }, color: "blue" })],
     });
     const { wrapper } = createNotesHookWrapper();
 
@@ -34,7 +32,6 @@ describe("useNoteView", () => {
       position: { x: 10, y: 20 },
       size: { width: 220, height: 220 },
       color: "blue",
-      zIndex: 4,
     });
   });
 

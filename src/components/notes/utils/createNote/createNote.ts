@@ -8,12 +8,8 @@ import type { CreateNoteInput, Note } from '../../types';
 import { clampSize } from '../clampSize';
 import { generateId } from '../generateId';
 
-/**
- * Build a fully-formed note from a minimal input, applying defaults + clamps.
- * `zIndex` is supplied by the caller (typically `nextZIndex`) so the new note
- * lands on top of the existing ones.
- */
-export function createNote(input: CreateNoteInput, zIndex = 0): Note {
+/** Build a fully-formed note from a minimal input, applying defaults + clamps. */
+export function createNote(input: CreateNoteInput): Note {
   const now = Date.now();
   const size = clampSize(
     {
@@ -29,7 +25,6 @@ export function createNote(input: CreateNoteInput, zIndex = 0): Note {
     size,
     text: input.text ?? '',
     color: input.color ?? DEFAULT_NOTE_COLOR,
-    zIndex,
     createdAt: now,
     updatedAt: now,
   };

@@ -60,10 +60,11 @@ export function Board() {
         onDoubleClick={onBoardDoubleClick}
       >
         {!isLoading &&
-          noteIds.map((id) => (
+          noteIds.map((id, index) => (
             <NoteCardConnector
               key={id}
               id={id}
+              zIndex={index}
               getBoardRect={getBoardRect}
               {...noteHandlers}
             />

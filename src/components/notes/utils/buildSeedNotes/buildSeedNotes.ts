@@ -24,15 +24,10 @@ function randomPosition(): Position {
 
 /**
  * Build `count` empty notes scattered across the viewport with random palette
- * colors — backing the "Simulate 100 empty cards" action. Each note gets a
- * distinct, increasing `zIndex` starting at `startZIndex` so they stack above
- * any existing notes (and above one another) in creation order.
+ * colors — backing the "Simulate 100 empty cards" action.
  */
-export function buildSeedNotes(count: number, startZIndex = 0): Note[] {
-  return Array.from({ length: count }, (_, index) =>
-    createNote(
-      { position: randomPosition(), color: randomColor() },
-      startZIndex + index,
-    ),
+export function buildSeedNotes(count: number): Note[] {
+  return Array.from({ length: count }, () =>
+    createNote({ position: randomPosition(), color: randomColor() }),
   );
 }

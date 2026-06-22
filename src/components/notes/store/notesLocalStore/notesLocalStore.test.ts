@@ -36,19 +36,18 @@ describe("notesLocalStore", () => {
     expect(patched.updatedAt).toBeGreaterThanOrEqual(note.updatedAt);
   });
 
-  it("should raise zIndex above all others on bringToFront without reordering", () => {
+  it("should move a note to the end on bringToFront", () => {
     const a = notesLocalStore.getState().addNote({ position: { x: 0, y: 0 } });
     const b = notesLocalStore.getState().addNote({ position: { x: 0, y: 0 } });
     const c = notesLocalStore.getState().addNote({ position: { x: 0, y: 0 } });
 
     notesLocalStore.getState().bringToFront(a.id);
 
-    const notes = notesLocalStore.getState().notes;
-    expect(notes.map((note) => note.id)).toEqual([a.id, b.id, c.id]);
-
-    const byId = (id: string) => notes.find((note) => note.id === id)!;
-    expect(byId(a.id).zIndex).toBeGreaterThan(byId(b.id).zIndex);
-    expect(byId(a.id).zIndex).toBeGreaterThan(byId(c.id).zIndex);
+    expect(notesLocalStore.getState().notes.map((note) => note.id)).toEqual([
+      b.id,
+      c.id,
+      a.id,
+    ]);
   });
 
   it("should keep the same array reference when bringing an unknown id to front", () => {

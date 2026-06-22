@@ -18,6 +18,5 @@ export function selectLocalNoteView(
     position: note.position,
     size: note.size,
     color: note.color,
-    zIndex: note.zIndex,
   };
 }

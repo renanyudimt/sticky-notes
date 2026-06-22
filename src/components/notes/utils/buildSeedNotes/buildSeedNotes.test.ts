@@ -28,12 +28,6 @@ describe('buildSeedNotes', () => {
     expect(new Set(notes.map((note) => note.id)).size).toBe(notes.length);
   });
 
-  it('should assign distinct increasing zIndex from the start value', () => {
-    const notes = buildSeedNotes(3, 10);
-
-    expect(notes.map((note) => note.zIndex)).toEqual([10, 11, 12]);
-  });
-
   it('should return an empty array for a count of zero', () => {
     expect(buildSeedNotes(0)).toEqual([]);
   });

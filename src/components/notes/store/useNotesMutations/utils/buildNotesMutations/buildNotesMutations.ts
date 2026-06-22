@@ -1,6 +1,6 @@
 import { notesKeys, NOTE_MUTATION_MESSAGES, type Note } from "@/services/notes";
 
-import { buildSeedNotes, nextZIndex } from "@/components/notes/utils";
+import { buildSeedNotes } from "@/components/notes/utils";
 import { toast } from "@/components/shared/components/ui";
 
 import { beginActivity, endActivity } from "../../../activityStore";
@@ -47,18 +47,13 @@ export function buildNotesMutations(
     bringToFront: (id) => {
       if (config.dataSource === "local") return store().bringToFront(id);
       config.deps.queryClient.setQueryData<Note[]>(listKey, (notes = []) => {
-        const note = notes.find((item) => item.id === id);
-        if (!note) return notes;
-
-        const top = Math.max(...notes.map((item) => item.zIndex));
-        const isUniqueTop =
-          note.zIndex === top &&
-          notes.filter((item) => item.zIndex === top).length === 1;
-        if (isUniqueTop) return notes;
-
-        return notes.map((item) =>
-          item.id === id ? { ...item, zIndex: top + 1 } : item,
-        );
+        const index = notes.findIndex((note) => note.id === id);
+        if (index === -1 || index === notes.length - 1) return notes;
+        return [
+          ...notes.slice(0, index),
+          ...notes.slice(index + 1),
+          notes[index],
+        ];
       });
     },
 
@@ -84,7 +79,7 @@ export function buildNotesMutations(
 
     seedNotes: (count) => {
       if (config.dataSource === "local") {
-        const created = buildSeedNotes(count, nextZIndex(store().notes));
+        const created = buildSeedNotes(count);
         store().seed(created);
         toast.success(NOTE_MUTATION_MESSAGES.seeded(created.length));
         return Promise.resolve();
