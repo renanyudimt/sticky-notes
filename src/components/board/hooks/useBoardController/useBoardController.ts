@@ -95,7 +95,7 @@ export function useBoardController(
       },
       onMoveEnd: (id, position, rect) => {
         if (isOverTrashZone(rect)) {
-          void mutations.deleteNote(id);
+          mutations.deleteNote(id);
         } else {
           mutations.commitNote(id, { position });
           mutations.bringToFront(id);
