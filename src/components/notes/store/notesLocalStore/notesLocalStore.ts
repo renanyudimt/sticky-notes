@@ -1,22 +1,59 @@
-import { create } from "zustand";
+import { create, type StateCreator } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import { NOTES_STORAGE_KEY } from "@/services/notes";
+import { NOTES_STORAGE_KEY, type Note } from "@/services/notes";
 
-import { notesStoreCreator } from "../notesStoreCreator";
-import type { NotesState } from "../types";
+import { createNote } from "../../utils";
+import type { NotesState } from "./types";
 
-// Only the notes are persisted — actions are recreated on each load.
+const creator: StateCreator<NotesState> = (set, get) => {
+  const commit = (transform: (notes: Note[]) => Note[]) =>
+    set((state) => ({ notes: transform(state.notes) }));
+
+  return {
+    notes: [],
+
+    addNote: (input) => {
+      const note = createNote(input);
+      commit((notes) => [...notes, note]);
+      return note;
+    },
+
+    patchNote: (id, changes) =>
+      commit((notes) =>
+        notes.map((note) =>
+          note.id === id
+            ? { ...note, ...changes, updatedAt: Date.now() }
+            : note,
+        ),
+      ),
+
+    bringToFront: (id) => {
+      const { notes } = get();
+      const index = notes.findIndex((note) => note.id === id);
+
+      if (index === -1 || index === notes.length - 1) return;
+
+      commit((current) => [
+        ...current.slice(0, index),
+        ...current.slice(index + 1),
+        current[index],
+      ]);
+    },
+
+    removeNote: (id) =>
+      commit((notes) => notes.filter((note) => note.id !== id)),
+
+    clear: () => commit(() => []),
+
+    seed: (created) => commit((notes) => [...notes, ...created]),
+  };
+};
+
 const partialize = (state: NotesState) => ({ notes: state.notes });
 
-/**
- * The local backend. A Zustand store persisted to `localStorage` under the
- * local key. `createJSONStorage(localStorage)` is synchronous, so the store
- * hydrates eagerly at import — notes are on screen at first paint, with no
- * loading state (this is the user's own storage, not a network call).
- */
 export const notesLocalStore = create<NotesState>()(
-  persist(notesStoreCreator, {
+  persist(creator, {
     name: NOTES_STORAGE_KEY.local,
     storage: createJSONStorage(() => window.localStorage),
     partialize,

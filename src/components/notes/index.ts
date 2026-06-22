@@ -17,38 +17,30 @@ export {
   resizeRect,
 } from './utils';
 export type { ResizeConstraints } from './utils';
-export { useDataSource } from './dataSource';
-export type { DataSourceContextValue } from './dataSource';
 export {
+  notesLocalStore,
+  dataSourceStore,
+  useDataSource,
   useNoteIds,
   useNoteView,
   useNoteText,
   useNotesLoading,
   useNotesError,
   useNotesMutations,
-} from './data';
-export type { NotesMutations } from './data';
-export {
-  dataSourceStore,
-  notesLocalStore,
   resetNotesStore,
   resetDataSourceStore,
-} from './store';
-export {
   getDragState,
   resetDragState,
   setDragging,
   setOverTrash,
   useNotePendingDelete,
   useTrashActive,
-} from './dragState';
-export {
   beginActivity,
   endActivity,
   resetActivityState,
   useNotesActivity,
-} from './activityState';
-export type { NoteActivity } from './activityState';
+} from './store';
+export type { NotesMutations, NoteActivity } from './store';
 export { useNoteMove, useNoteResize } from './hooks';
 export {
   NoteCard,

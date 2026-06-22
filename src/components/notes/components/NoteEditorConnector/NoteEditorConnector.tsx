@@ -2,7 +2,7 @@ import { memo, useEffect, useRef, useState } from "react";
 
 import { useDebounce } from "@/hooks/useDebounce";
 
-import { useNoteText } from "../../data";
+import { useNoteText } from "../../store";
 import { NoteEditor } from "../NoteEditor";
 import { NOTE_EDITOR_LABEL, NOTE_TEXT_DEBOUNCE } from "./constants";
 import type { NoteEditorConnectorProps } from "./types";

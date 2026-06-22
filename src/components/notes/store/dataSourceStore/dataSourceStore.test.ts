@@ -1,20 +1,20 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { DATA_SOURCE_STORAGE_KEY, DEFAULT_DATA_SOURCE } from "@/services/notes";
+import { DATA_SOURCE_STORAGE_KEY } from "@/services/notes";
 
 import { dataSourceStore } from "./dataSourceStore";
+import { resetDataSourceStore } from "../testing";
 
 describe("dataSourceStore", () => {
   afterEach(() => {
-    dataSourceStore.setState({ dataSource: DEFAULT_DATA_SOURCE });
-    window.localStorage.clear();
+    resetDataSourceStore();
   });
 
   it("should default to the local backend", () => {
     expect(dataSourceStore.getState().dataSource).toBe("local");
   });
 
-  it("should switch the active backend via setDataSource", () => {
+  it("should update the active dataSource via setDataSource", () => {
     dataSourceStore.getState().setDataSource("api");
 
     expect(dataSourceStore.getState().dataSource).toBe("api");
@@ -23,7 +23,6 @@ describe("dataSourceStore", () => {
   it("should persist the selection to localStorage", () => {
     dataSourceStore.getState().setDataSource("api");
 
-    const persisted = window.localStorage.getItem(DATA_SOURCE_STORAGE_KEY);
-    expect(persisted).toContain("api");
+    expect(window.localStorage.getItem(DATA_SOURCE_STORAGE_KEY)).toContain("api");
   });
 });

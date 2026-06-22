@@ -6,23 +6,13 @@ import { createRenderCounter, RenderProbe } from "@/test/renderCount";
 
 import type { Note as NoteModel } from "../../types";
 import { NoteCard } from "./NoteCard";
+import { createMockNote } from "@/test/createMockNote";
 
 vi.mock("../NoteEditorConnector", () => ({
   NoteEditorConnector: ({ id }: { id: string }) => (
     <div data-testid={`editor-${id}`} />
   ),
 }));
-
-const createMockNote = (overrides: Partial<NoteModel> = {}): NoteModel => ({
-  id: "note-1",
-  position: { x: 40, y: 60 },
-  size: { width: 200, height: 180 },
-  text: "Reminder",
-  color: "yellow",
-  createdAt: 0,
-  updatedAt: 0,
-  ...overrides,
-});
 
 const createMockHandlers = () => ({
   getBoardRect: () =>
@@ -51,7 +41,10 @@ describe("NoteCard", () => {
   });
 
   it("should position and size the note from its model", () => {
-    const { note } = renderNote();
+    const { note } = renderNote({
+      position: { x: 40, y: 60 },
+      size: { width: 200, height: 180 },
+    });
     const element = screen.getByTestId(`note-${note.id}`);
 
     expect(element).toHaveStyle({

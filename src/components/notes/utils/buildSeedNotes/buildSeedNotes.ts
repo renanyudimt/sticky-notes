@@ -1,10 +1,11 @@
 import { DEFAULT_NOTE_SIZE, NOTE_COLOR_OPTIONS } from '../../constants';
 import type { Note, NoteColor, Position } from '../../types';
 import { createNote } from '../createNote';
+import { randomInt } from '../randomInt';
 
 /** Pick a random color from the existing palette. */
 function randomColor(): NoteColor {
-  const index = Math.floor(Math.random() * NOTE_COLOR_OPTIONS.length);
+  const index = randomInt(NOTE_COLOR_OPTIONS.length);
   return NOTE_COLOR_OPTIONS[index].value;
 }
 
@@ -16,8 +17,8 @@ function randomPosition(): Position {
   const maxY = Math.max(0, viewportHeight - DEFAULT_NOTE_SIZE.height);
 
   return {
-    x: Math.round(Math.random() * maxX),
-    y: Math.round(Math.random() * maxY),
+    x: randomInt(maxX + 1),
+    y: randomInt(maxY + 1),
   };
 }
 

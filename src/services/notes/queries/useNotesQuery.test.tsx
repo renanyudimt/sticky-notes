@@ -4,19 +4,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createQueryWrapper } from "@/test/queryWrapper";
 
 import { saveNotes } from "../repository";
-import type { Note } from "../types";
 import { useNotesQuery } from "./useNotesQuery";
-
-const createMockNote = (overrides: Partial<Note> = {}): Note => ({
-  id: "note-1",
-  position: { x: 0, y: 0 },
-  size: { width: 220, height: 220 },
-  text: "Reminder",
-  color: "yellow",
-  createdAt: 1,
-  updatedAt: 1,
-  ...overrides,
-});
+import { createMockNote } from "@/test/createMockNote";
 
 describe("useNotesQuery", () => {
   beforeEach(() => {

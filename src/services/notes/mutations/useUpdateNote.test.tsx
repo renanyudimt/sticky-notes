@@ -7,6 +7,7 @@ import { notesKeys } from "../keys";
 import { readNotes, saveNotes } from "../repository";
 import type { Note } from "../types";
 import { useUpdateNote } from "./useUpdateNote";
+import { createMockNote } from "@/test/createMockNote";
 
 // Mock the repository so a write can be forced to fail (rollback path).
 vi.mock("../repository", () => ({
@@ -15,17 +16,6 @@ vi.mock("../repository", () => ({
 }));
 
 const mockSaveNotes = vi.mocked(saveNotes);
-
-const createMockNote = (overrides: Partial<Note> = {}): Note => ({
-  id: "note-1",
-  position: { x: 0, y: 0 },
-  size: { width: 220, height: 220 },
-  text: "Reminder",
-  color: "yellow",
-  createdAt: 1,
-  updatedAt: 1,
-  ...overrides,
-});
 
 describe("useUpdateNote", () => {
   beforeEach(() => {

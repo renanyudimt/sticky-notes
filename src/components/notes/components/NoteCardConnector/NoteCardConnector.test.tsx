@@ -13,9 +13,9 @@ import {
   useNotesMutations,
   type NotesMutations,
 } from "@/components/notes";
-import type { Note } from "@/services/notes";
 
 import { NoteCardConnector } from "./NoteCardConnector";
+import { createMockNote } from "@/test/createMockNote";
 
 const handlers = {
   zIndex: 0,
@@ -30,17 +30,6 @@ const handlers = {
   onEditText: vi.fn(),
   onDelete: vi.fn(),
 };
-
-const createMockNote = (overrides: Partial<Note> = {}): Note => ({
-  id: "note-1",
-  position: { x: 0, y: 0 },
-  size: { width: 220, height: 220 },
-  text: "",
-  color: "yellow",
-  createdAt: 1,
-  updatedAt: 1,
-  ...overrides,
-});
 
 const createWrapper = () => {
   const queryClient = new QueryClient({

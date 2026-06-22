@@ -1,2 +1,2 @@
 export { dataSourceStore } from "./dataSourceStore";
-export type { DataSourceState } from "./types";
+export type { DataSourceState } from "./dataSourceStore";

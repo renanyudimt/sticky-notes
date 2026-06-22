@@ -7,17 +7,7 @@ import { notesKeys } from "../keys";
 import { readNotes, saveNotes } from "../repository";
 import type { Note } from "../types";
 import { useDeleteNote } from "./useDeleteNote";
-
-const createMockNote = (overrides: Partial<Note> = {}): Note => ({
-  id: "note-1",
-  position: { x: 0, y: 0 },
-  size: { width: 220, height: 220 },
-  text: "Reminder",
-  color: "yellow",
-  createdAt: 1,
-  updatedAt: 1,
-  ...overrides,
-});
+import { createMockNote } from "@/test/createMockNote";
 
 describe("useDeleteNote", () => {
   beforeEach(() => {
