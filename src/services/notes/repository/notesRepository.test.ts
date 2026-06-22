@@ -34,6 +34,26 @@ describe("notesRepository", () => {
     expect(readNotes("api")).toEqual([createMockNote({ id: "api-note" })]);
   });
 
+  it("should backfill zIndex by array order for legacy notes without it", () => {
+    const legacy = (id: string) => {
+      const note: Record<string, unknown> = { ...createMockNote({ id }) };
+      delete note.zIndex;
+      return note;
+    };
+    window.localStorage.setItem(
+      "rymt-sticky-notes/api",
+      JSON.stringify([legacy("a"), legacy("b")]),
+    );
+
+    expect(readNotes("api").map((note) => note.zIndex)).toEqual([0, 1]);
+  });
+
+  it("should preserve an already-stored zIndex", () => {
+    saveNotes("api", [createMockNote({ id: "a", zIndex: 9 })]);
+
+    expect(readNotes("api")[0].zIndex).toBe(9);
+  });
+
   it("should fall back to an empty array on corrupt JSON", () => {
     window.localStorage.setItem("rymt-sticky-notes/api", "{not json");
 

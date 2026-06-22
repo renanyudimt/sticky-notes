@@ -40,18 +40,21 @@ describe("buildNotesMutations", () => {
       expect(notes()[0].color).toBe("blue");
     });
 
-    it("should move a note to the end on bringToFront", () => {
+    it("should raise zIndex above all others on bringToFront without reordering", () => {
       notesLocalStore.setState({
         notes: [
-          createMockNote({ id: "a" }),
-          createMockNote({ id: "b" }),
-          createMockNote({ id: "c" }),
+          createMockNote({ id: "a", zIndex: 0 }),
+          createMockNote({ id: "b", zIndex: 1 }),
+          createMockNote({ id: "c", zIndex: 2 }),
         ],
       });
 
       localMutations().bringToFront("a");
 
-      expect(notes().map((note) => note.id)).toEqual(["b", "c", "a"]);
+      const current = notes();
+      expect(current.map((note) => note.id)).toEqual(["a", "b", "c"]);
+      const top = Math.max(...current.map((note) => note.zIndex));
+      expect(current.find((note) => note.id === "a")?.zIndex).toBe(top);
     });
 
     it("should remove a note on deleteNote", async () => {
@@ -111,19 +114,20 @@ describe("buildNotesMutations", () => {
       expect(deps.updateMutate).not.toHaveBeenCalled();
     });
 
-    it("should move a note to the end of the cache on bringToFront", () => {
+    it("should raise zIndex above all others in the cache on bringToFront without reordering", () => {
       const deps = createDeps();
       deps.queryClient.setQueryData<Note[]>(LIST_KEY, [
-        createMockNote({ id: "a" }),
-        createMockNote({ id: "b" }),
-        createMockNote({ id: "c" }),
+        createMockNote({ id: "a", zIndex: 0 }),
+        createMockNote({ id: "b", zIndex: 1 }),
+        createMockNote({ id: "c", zIndex: 2 }),
       ]);
 
       apiMutations(deps).bringToFront("a");
 
-      expect(
-        deps.queryClient.getQueryData<Note[]>(LIST_KEY)?.map((note) => note.id),
-      ).toEqual(["b", "c", "a"]);
+      const cached = deps.queryClient.getQueryData<Note[]>(LIST_KEY) ?? [];
+      expect(cached.map((note) => note.id)).toEqual(["a", "b", "c"]);
+      const top = Math.max(...cached.map((note) => note.zIndex));
+      expect(cached.find((note) => note.id === "a")?.zIndex).toBe(top);
     });
 
     it("should forward the input to the create mutation on createNote", () => {

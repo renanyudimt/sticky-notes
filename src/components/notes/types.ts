@@ -33,6 +33,12 @@ export interface Note {
   size: Size;
   text: string;
   color: NoteColor;
+  /**
+   * Paint order — higher sits on top. Stored explicitly (not derived from array
+   * position) so "bring to front" patches a single note instead of reordering
+   * the list, re-rendering only that card.
+   */
+  zIndex: number;
   createdAt: number;
   updatedAt: number;
 }
@@ -42,7 +48,10 @@ export interface Note {
  * card and the move/resize hooks render from this, so typing (which patches only
  * `text`) never changes their input and never re-renders the card chrome.
  */
-export type NoteView = Pick<Note, 'id' | 'position' | 'size' | 'color'>;
+export type NoteView = Pick<
+  Note,
+  'id' | 'position' | 'size' | 'color' | 'zIndex'
+>;
 
 /** Minimal shape required to create a note; the rest is derived. */
 export interface CreateNoteInput {

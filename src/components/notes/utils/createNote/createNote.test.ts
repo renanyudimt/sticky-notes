@@ -17,6 +17,11 @@ describe('createNote', () => {
     expect(note.text).toBe('');
   });
 
+  it('should default zIndex to 0 and use the value when provided', () => {
+    expect(createNote({ position: { x: 0, y: 0 } }).zIndex).toBe(0);
+    expect(createNote({ position: { x: 0, y: 0 } }, 7).zIndex).toBe(7);
+  });
+
   it('should generate a unique id and matching timestamps', () => {
     const a = createNote({ position: { x: 0, y: 0 } });
     const b = createNote({ position: { x: 0, y: 0 } });

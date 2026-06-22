@@ -10,6 +10,7 @@ const note: Note = {
   size: { width: 200, height: 200 },
   text: '',
   color: 'yellow',
+  zIndex: 0,
   createdAt: 0,
   updatedAt: 0,
 };

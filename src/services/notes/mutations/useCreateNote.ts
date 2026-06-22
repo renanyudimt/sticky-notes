@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { createNote } from "@/components/notes/utils";
+import { createNote, nextZIndex } from "@/components/notes/utils";
 import { delay } from "@/components/shared";
 import { toast } from "@/components/shared/components/ui";
 
@@ -15,8 +15,9 @@ async function createNoteRequest(
   input: CreateNoteInput,
 ): Promise<Note> {
   await delay(DATA_SOURCE_LATENCY[dataSource]);
-  const note = createNote(input);
-  saveNotes(dataSource, [...readNotes(dataSource), note]);
+  const existing = readNotes(dataSource);
+  const note = createNote(input, nextZIndex(existing));
+  saveNotes(dataSource, [...existing, note]);
   return note;
 }
 

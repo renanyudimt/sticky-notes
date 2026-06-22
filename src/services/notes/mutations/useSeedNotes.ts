@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { buildSeedNotes } from "@/components/notes/utils";
+import { buildSeedNotes, nextZIndex } from "@/components/notes/utils";
 import { delay } from "@/components/shared";
 import { toast } from "@/components/shared/components/ui";
 
@@ -19,8 +19,9 @@ async function seedNotesRequest(
   count: number,
 ): Promise<Note[]> {
   await delay(DATA_SOURCE_LATENCY[dataSource]);
-  const created = buildSeedNotes(count);
-  saveNotes(dataSource, [...readNotes(dataSource), ...created]);
+  const existing = readNotes(dataSource);
+  const created = buildSeedNotes(count, nextZIndex(existing));
+  saveNotes(dataSource, [...existing, ...created]);
   return created;
 }
 

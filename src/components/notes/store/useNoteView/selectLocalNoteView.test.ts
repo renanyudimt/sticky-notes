@@ -10,7 +10,7 @@ const stateWith = (notes: NotesState["notes"]): NotesState =>
 describe("selectLocalNoteView", () => {
   it("should return the note's layout/style slice", () => {
     const state = stateWith([
-      createMockNote({ position: { x: 10, y: 20 }, color: "blue" }),
+      createMockNote({ position: { x: 10, y: 20 }, color: "blue", zIndex: 4 }),
     ]);
 
     expect(selectLocalNoteView(state, "note-1")).toEqual({
@@ -18,6 +18,7 @@ describe("selectLocalNoteView", () => {
       position: { x: 10, y: 20 },
       size: { width: 220, height: 220 },
       color: "blue",
+      zIndex: 4,
     });
   });
 

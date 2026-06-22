@@ -212,8 +212,9 @@ describe("useBoardController", () => {
       ),
     );
 
-    const last = result.current.notes[result.current.notes.length - 1];
-    expect(last.id).toBe(id);
+    const moved = result.current.notes.find((note) => note.id === id)!;
+    const top = Math.max(...result.current.notes.map((note) => note.zIndex));
+    expect(moved.zIndex).toBe(top);
   });
 
   it("should clear all notes", async () => {

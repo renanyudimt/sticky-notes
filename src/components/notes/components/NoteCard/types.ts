@@ -6,7 +6,7 @@ export interface NoteCardProps {
    * so typing never re-renders the card.
    */
   note: NoteView;
-  /** Stacking order, derived from the note's index in the board's array. */
+  /** Stacking order — the note's own `zIndex`; higher sits on top. */
   zIndex: number;
   getBoardRect: () => DOMRect | null;
   isPendingDelete?: boolean;

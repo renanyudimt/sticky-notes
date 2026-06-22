@@ -10,6 +10,7 @@ export const createMockNote = (overrides: Partial<Note> = {}): Note => ({
   size: { width: 220, height: 220 },
   text: "",
   color: "yellow",
+  zIndex: 0,
   createdAt: 1,
   updatedAt: 1,
   ...overrides,

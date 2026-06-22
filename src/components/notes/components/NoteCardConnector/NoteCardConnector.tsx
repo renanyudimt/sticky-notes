@@ -10,7 +10,14 @@ function NoteCardConnectorBase({ id, ...rest }: NoteCardConnectorProps) {
 
   if (!note) return null;
 
-  return <NoteCard note={note} isPendingDelete={isPendingDelete} {...rest} />;
+  return (
+    <NoteCard
+      note={note}
+      zIndex={note.zIndex}
+      isPendingDelete={isPendingDelete}
+      {...rest}
+    />
+  );
 }
 
 export const NoteCardConnector = memo(NoteCardConnectorBase);

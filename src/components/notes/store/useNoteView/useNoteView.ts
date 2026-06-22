@@ -27,6 +27,7 @@ export function useNoteView(id: string): NoteView | undefined {
         position: note.position,
         size: note.size,
         color: note.color,
+        zIndex: note.zIndex,
       };
     },
     dataSource === "api",
