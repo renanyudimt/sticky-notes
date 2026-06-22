@@ -4,6 +4,8 @@ import type {
   ThemeColors,
   ThemeRadius,
   ThemeShadow,
+  ToastKind,
+  ToastSurface,
 } from "./types";
 import type { NoteColor } from "@/components/notes";
 
@@ -32,6 +34,16 @@ const noteColors: Record<NoteColor, NoteSurfaceColor> = {
   green: { bg: "#a7f3d0", border: "#6ee7b7" },
   purple: { bg: "#ddd6fe", border: "#c4b5fd" },
   orange: { bg: "#fed7aa", border: "#fdba74" },
+};
+
+const lightToast: Record<ToastKind, ToastSurface> = {
+  success: { bg: "#dcfce7", border: "#86efac", fg: "#166534" },
+  error: { bg: "#fee2e2", border: "#fca5a5", fg: "#991b1b" },
+};
+
+const darkToast: Record<ToastKind, ToastSurface> = {
+  success: { bg: "#052e16", border: "#166534", fg: "#bbf7d0" },
+  error: { bg: "#450a0a", border: "#991b1b", fg: "#fecaca" },
 };
 
 const font = { sans: "system-ui, 'Segoe UI', Roboto, sans-serif" };
@@ -86,6 +98,7 @@ export const lightTheme: AppTheme = {
   radius,
   shadow,
   noteColors,
+  toast: lightToast,
   font,
 };
 
@@ -95,6 +108,7 @@ export const darkTheme: AppTheme = {
   radius,
   shadow,
   noteColors,
+  toast: darkToast,
   font,
 };
 

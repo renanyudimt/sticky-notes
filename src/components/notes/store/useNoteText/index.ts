@@ -1,0 +1,1 @@
+export { useNoteText } from "./useNoteText";

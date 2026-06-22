@@ -23,19 +23,21 @@ vi.mock('lucide-react', async (importOriginal) => {
 });
 
 const renderToolbar = (props: Partial<Parameters<typeof Toolbar>[0]> = {}) => {
-  const onRepositoryChange = vi.fn();
+  const onDataSourceChange = vi.fn();
   const onClear = vi.fn();
+  const onSeed = vi.fn();
   render(
     <Toolbar
       noteCount={props.noteCount ?? 2}
-      repositoryKind={props.repositoryKind ?? 'local'}
+      dataSource={props.dataSource ?? 'local'}
       isSwitching={props.isSwitching ?? false}
-      onRepositoryChange={onRepositoryChange}
+      onDataSourceChange={onDataSourceChange}
       onClear={onClear}
+      onSeed={onSeed}
     />,
     { wrapper: ThemeModeProvider },
   );
-  return { onRepositoryChange, onClear };
+  return { onDataSourceChange, onClear, onSeed };
 };
 
 describe('Toolbar', () => {
@@ -54,7 +56,7 @@ describe('Toolbar', () => {
   });
 
   it('should mark the active repository', () => {
-    renderToolbar({ repositoryKind: 'rest' });
+    renderToolbar({ dataSource: 'api' });
     expect(screen.getByRole('radio', { name: 'API' })).toHaveAttribute(
       'aria-checked',
       'true',
@@ -62,12 +64,12 @@ describe('Toolbar', () => {
   });
 
   it('should switch repository on click', async () => {
-    const { onRepositoryChange } = renderToolbar({ repositoryKind: 'local' });
+    const { onDataSourceChange } = renderToolbar({ dataSource: 'local' });
     const user = userEvent.setup();
 
     await user.click(screen.getByRole('radio', { name: 'API' }));
 
-    expect(onRepositoryChange).toHaveBeenCalledWith('rest');
+    expect(onDataSourceChange).toHaveBeenCalledWith('api');
   });
 
   it('should disable the repository toggle while switching', () => {
@@ -77,23 +79,25 @@ describe('Toolbar', () => {
   });
 
   it('should not switch repository while a switch is in flight', async () => {
-    const { onRepositoryChange } = renderToolbar({
-      repositoryKind: 'local',
+    const { onDataSourceChange } = renderToolbar({
+      dataSource: 'local',
       isSwitching: true,
     });
     const user = userEvent.setup();
 
     await user.click(screen.getByRole('radio', { name: 'API' }));
 
-    expect(onRepositoryChange).not.toHaveBeenCalled();
+    expect(onDataSourceChange).not.toHaveBeenCalled();
   });
 
-  it('should clear notes when the clear button is clicked', async () => {
+  it('should clear notes only after the action is confirmed', async () => {
     const { onClear } = renderToolbar({ noteCount: 2 });
     const user = userEvent.setup();
 
-    await user.click(screen.getByRole('button', { name: /Clear all/ }));
+    await user.click(screen.getByRole('button', { name: 'Clear all' }));
+    expect(onClear).not.toHaveBeenCalled();
 
+    await user.click(screen.getByRole('button', { name: 'Delete all' }));
     expect(onClear).toHaveBeenCalledTimes(1);
   });
 
@@ -105,14 +109,16 @@ describe('Toolbar', () => {
   // The Board re-renders on every pointer move during a drag; the toolbar must
   // not follow when its inputs are unchanged.
   it('should not re-render when its props are unchanged', () => {
-    const onRepositoryChange = vi.fn();
+    const onDataSourceChange = vi.fn();
     const onClear = vi.fn();
+    const onSeed = vi.fn();
     const props = {
       noteCount: 2,
-      repositoryKind: 'local' as const,
+      dataSource: 'local' as const,
       isSwitching: false,
-      onRepositoryChange,
+      onDataSourceChange,
       onClear,
+      onSeed,
     };
 
     const { rerender } = render(<Toolbar {...props} />, {
@@ -124,23 +130,26 @@ describe('Toolbar', () => {
     expect(renderSpy).not.toHaveBeenCalled();
   });
 
-  it('should re-render when the note count changes', () => {
-    const onRepositoryChange = vi.fn();
+  it('should reflect a changed note count after re-rendering', () => {
+    const onDataSourceChange = vi.fn();
     const onClear = vi.fn();
+    const onSeed = vi.fn();
     const props = {
       noteCount: 2,
-      repositoryKind: 'local' as const,
+      dataSource: 'local' as const,
       isSwitching: false,
-      onRepositoryChange,
+      onDataSourceChange,
       onClear,
+      onSeed,
     };
 
     const { rerender } = render(<Toolbar {...props} />, {
       wrapper: ThemeModeProvider,
     });
-    renderSpy.mockClear();
+    expect(screen.getByText('2 notes')).toBeInTheDocument();
+
     rerender(<Toolbar {...props} noteCount={3} />);
 
-    expect(renderSpy).toHaveBeenCalled();
+    expect(screen.getByText('3 notes')).toBeInTheDocument();
   });
 });

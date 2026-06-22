@@ -1,25 +1,29 @@
-import { memo, useCallback } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 
-import { useNoteActions, useNoteText } from "../../store";
+import { useDebounce } from "@/hooks/useDebounce";
+
+import { useNoteText } from "../../store";
 import { NoteEditor } from "../NoteEditor";
-import { NOTE_EDITOR_LABEL } from "./constants";
+import { NOTE_EDITOR_LABEL, NOTE_TEXT_DEBOUNCE } from "./constants";
 import type { NoteEditorConnectorProps } from "./types";
 
-function NoteEditorConnectorBase({ id }: NoteEditorConnectorProps) {
-  const text = useNoteText(id);
-  const { editNoteText } = useNoteActions();
+function NoteEditorConnectorBase({ id, onEditText }: NoteEditorConnectorProps) {
+  const committedText = useNoteText(id);
+  const [value, setValue] = useState(committedText);
+  const debouncedValue = useDebounce(value, NOTE_TEXT_DEBOUNCE);
 
-  const handleChange = useCallback(
-    (value: string) => editNoteText(id, value),
-    [editNoteText, id],
-  );
+  const lastCommitted = useRef(committedText);
+
+  useEffect(() => {
+    if (debouncedValue !== lastCommitted.current) {
+      lastCommitted.current = debouncedValue;
+      onEditText(id, debouncedValue);
+    }
+  }, [debouncedValue, id, onEditText]);
 
   return (
-    <NoteEditor value={text} label={NOTE_EDITOR_LABEL} onChange={handleChange} />
+    <NoteEditor value={value} label={NOTE_EDITOR_LABEL} onChange={setValue} />
   );
 }
 
-// Subscribes to its own note's text slice (a primitive selector), so typing
-// re-renders only this editor and its textarea — never the surrounding card
-// chrome (header, delete button, color picker, resize handles).
 export const NoteEditorConnector = memo(NoteEditorConnectorBase);

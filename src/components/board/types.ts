@@ -1,6 +1,6 @@
-import type { RepositoryKind } from "@/components/persistence";
+import type { DataSource } from "@/services/notes";
 
 export interface RepositoryOption {
-  value: RepositoryKind;
+  value: DataSource;
   label: string;
 }

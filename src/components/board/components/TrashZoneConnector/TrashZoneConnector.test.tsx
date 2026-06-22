@@ -1,14 +1,17 @@
 import { act, render, screen } from "@/test/renderWithTheme";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { notesLocalStore, resetNotesStores } from "@/components/notes";
+import { resetDragState, setDragging, setOverTrash } from "@/components/notes";
 
 import { TrashZoneConnector } from "./TrashZoneConnector";
 
 describe("TrashZoneConnector", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    resetNotesStores();
+    resetDragState();
+  });
+
+  afterEach(() => {
+    resetDragState();
   });
 
   it("should render an idle trash zone by default", () => {
@@ -23,8 +26,8 @@ describe("TrashZoneConnector", () => {
     render(<TrashZoneConnector />);
 
     act(() => {
-      notesLocalStore.getState().setDragging("note-1");
-      notesLocalStore.getState().setOverTrash(true);
+      setDragging("note-1");
+      setOverTrash(true);
     });
 
     expect(screen.getByTestId("trash-zone")).toHaveAttribute(

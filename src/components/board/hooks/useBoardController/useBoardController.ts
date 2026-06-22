@@ -4,13 +4,16 @@ import {
   clampPosition,
   DEFAULT_NOTE_SIZE,
   rectsIntersect,
-  switchBackend,
-  useNoteActions,
+  setDragging,
+  setOverTrash,
+  useDataSource,
   useNoteIds,
-  useNotesStatus,
-  useRepositoryKind,
+  useNotesError,
+  useNotesLoading,
+  useNotesMutations,
   type Rect,
 } from "@/components/notes";
+import { SEED_NOTE_COUNT } from "@/services/notes";
 
 import { useCreateNoteDrag } from "../useCreateNoteDrag";
 import { toBoardRect } from "../../utils";
@@ -20,10 +23,11 @@ export function useBoardController(
   boardRef: RefObject<HTMLDivElement | null>,
   trashRef: RefObject<HTMLDivElement | null>,
 ): BoardController {
+  const { dataSource, setDataSource } = useDataSource();
   const noteIds = useNoteIds();
-  const status = useNotesStatus();
-  const repositoryKind = useRepositoryKind();
-  const actions = useNoteActions();
+  const isLoading = useNotesLoading();
+  const isError = useNotesError();
+  const mutations = useNotesMutations();
 
   const getBoardRect = useCallback(
     () => boardRef.current?.getBoundingClientRect() ?? null,
@@ -43,7 +47,7 @@ export function useBoardController(
   const { isCreating, previewRef, startCreate } = useCreateNoteDrag({
     getBoardRect,
     onCreate: (rect) =>
-      actions.addNote({
+      mutations.createNote({
         position: { x: rect.x, y: rect.y },
         size: { width: rect.width, height: rect.height },
       }),
@@ -54,6 +58,11 @@ export function useBoardController(
       if (event.target === event.currentTarget) startCreate(event);
     },
     [startCreate],
+  );
+
+  const onSeed = useCallback(
+    () => mutations.seedNotes(SEED_NOTE_COUNT),
+    [mutations],
   );
 
   const onBoardDoubleClick = useCallback(
@@ -71,48 +80,60 @@ export function useBoardController(
         { width: board.width, height: board.height },
       );
 
-      actions.addNote({ position });
+      mutations.createNote({ position });
     },
-    [actions, getBoardRect],
+    [mutations, getBoardRect],
   );
 
   const noteHandlers: NoteInteractionHandlers = useMemo(
     () => ({
-      onFocus: actions.bringToFront,
-      onMoveStart: (id) => actions.setDragging(id),
+      onFocus: mutations.bringToFront,
+      onMoveStart: (id) => setDragging(id),
       onMove: (id, position, rect) => {
-        actions.moveNote(id, position);
-        actions.setOverTrash(isOverTrashZone(rect));
+        mutations.patchNote(id, { position });
+        setOverTrash(isOverTrashZone(rect));
       },
       onMoveEnd: (id, position, rect) => {
         if (isOverTrashZone(rect)) {
-          actions.removeNote(id);
+          mutations.deleteNote(id);
         } else {
-          actions.moveNote(id, position);
+          mutations.commitNote(id, { position });
+          mutations.bringToFront(id);
         }
-        actions.setDragging(null);
-        actions.setOverTrash(false);
+        setDragging(null);
+        setOverTrash(false);
       },
-      onResize: (id, rect) => actions.resizeNote(id, rect),
-      onResizeEnd: (id, rect) => actions.resizeNote(id, rect),
-      onColorChange: actions.changeNoteColor,
-      onDelete: actions.removeNote,
+      onResize: (id, rect) =>
+        mutations.patchNote(id, {
+          position: { x: rect.x, y: rect.y },
+          size: { width: rect.width, height: rect.height },
+        }),
+      onResizeEnd: (id, rect) =>
+        mutations.commitNote(id, {
+          position: { x: rect.x, y: rect.y },
+          size: { width: rect.width, height: rect.height },
+        }),
+      onColorChange: (id, color) => mutations.commitNote(id, { color }),
+      onEditText: (id, text) => mutations.commitNote(id, { text }),
+      onDelete: (id) => mutations.deleteNote(id),
     }),
-    [actions, isOverTrashZone],
+    [mutations, isOverTrashZone],
   );
 
   return {
     noteIds,
     noteCount: noteIds.length,
-    status,
+    isLoading,
+    isError,
     previewRef,
     isCreating,
-    repositoryKind,
+    dataSource: dataSource,
     getBoardRect,
     onBoardPointerDown,
     onBoardDoubleClick,
-    onClear: actions.clear,
-    onRepositoryChange: switchBackend,
+    onClear: mutations.clearNotes,
+    onSeed,
+    onDataSourceChange: setDataSource,
     noteHandlers,
   };
 }

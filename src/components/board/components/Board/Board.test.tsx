@@ -1,29 +1,51 @@
 import { render, screen } from "@/test/renderWithTheme";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createNote,
-  notesRestStore,
-  resetNotesStores,
-  useBackendStore,
+  dataSourceStore,
+  resetDataSourceStore,
+  resetNotesStore,
 } from "@/components/notes";
+import { saveNotes, type DataSource } from "@/services/notes";
 import { ThemeModeProvider } from "@/theme";
 
 import { Board } from "./Board";
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <ThemeModeProvider>{children}</ThemeModeProvider>
-);
+const renderBoard = (initialDataSource: DataSource = "local") => {
+  dataSourceStore.setState({ dataSource: initialDataSource });
 
-const renderBoard = () => render(<Board />, { wrapper });
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={queryClient}>
+      <ThemeModeProvider>{children}</ThemeModeProvider>
+    </QueryClientProvider>
+  );
+
+  return render(<Board />, { wrapper });
+};
 
 describe("Board", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    resetNotesStores();
+    resetNotesStore();
+    window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    resetNotesStore();
+    resetDataSourceStore();
+    window.localStorage.clear();
   });
 
   it("should show the empty hint when there are no notes", () => {
@@ -44,8 +66,10 @@ describe("Board", () => {
 
     await user.dblClick(screen.getByTestId("board"));
 
-    expect(screen.getByRole("article", { name: "Note" })).toBeInTheDocument();
-    expect(screen.getByText("1 note")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("article", { name: "Note" }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText("1 note")).toBeInTheDocument();
   });
 
   it("should not create a note on a single click", async () => {
@@ -75,25 +99,18 @@ describe("Board", () => {
     expect(preview.style.display).toBe("block");
   });
 
-  it("should show a loading state while the active backend is fetching", () => {
-    // The rest backend fetches asynchronously; while its store is loading, the
-    // board shows the overlay.
-    useBackendStore.setState({ kind: "rest" });
-    notesRestStore.setState({ status: "loading" });
-    renderBoard();
+  it("should show a loading state while the API backend is fetching", () => {
+    // The API backend fetches asynchronously; while the query is pending, the
+    // board shows the loading overlay.
+    renderBoard("api");
 
-    const status = screen.getByRole("status");
-    expect(status).toHaveTextContent("Loading notes...");
+    expect(screen.getByRole("status")).toHaveTextContent("Loading notes...");
   });
 
-  it("should hide the notes content while the active backend is loading", () => {
-    // Notes must only appear after the loader resolves — never alongside it.
-    useBackendStore.setState({ kind: "rest" });
-    notesRestStore.setState({
-      notes: [createNote({ position: { x: 0, y: 0 } })],
-      status: "loading",
-    });
-    renderBoard();
+  it("should hide the notes content while the API backend is loading", () => {
+    // Notes must only appear after the query resolves — never alongside loading.
+    saveNotes("api", [createNote({ position: { x: 0, y: 0 } })]);
+    renderBoard("api");
 
     expect(screen.getByRole("status")).toBeInTheDocument();
     expect(

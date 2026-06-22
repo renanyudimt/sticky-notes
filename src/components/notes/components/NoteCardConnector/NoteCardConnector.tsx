@@ -1,6 +1,6 @@
 import { memo } from "react";
 
-import { useNotePendingDelete, useNoteView } from "../../store";
+import { useNoteView, useNotePendingDelete } from "../../store";
 import { NoteCard } from "../NoteCard";
 import type { NoteCardConnectorProps } from "./types";
 

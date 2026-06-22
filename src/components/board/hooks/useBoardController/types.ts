@@ -1,12 +1,7 @@
 import type { RefObject } from "react";
 
-import type {
-  NoteColor,
-  NotesStatus,
-  Position,
-  Rect,
-} from "@/components/notes";
-import type { RepositoryKind } from "@/components/persistence";
+import type { NoteColor, Position, Rect } from "@/components/notes";
+import type { DataSource } from "@/services/notes";
 
 export interface NoteInteractionHandlers {
   onFocus: (id: string) => void;
@@ -16,20 +11,25 @@ export interface NoteInteractionHandlers {
   onResize: (id: string, rect: Rect) => void;
   onResizeEnd: (id: string, rect: Rect) => void;
   onColorChange: (id: string, color: NoteColor) => void;
-  onDelete: (id: string) => void;
+  onEditText: (id: string, text: string) => void;
+  /** Resolves when the delete request settles, so the dialog can close on success. */
+  onDelete: (id: string) => Promise<void>;
 }
 
 export interface BoardController {
   noteIds: string[];
   noteCount: number;
-  status: NotesStatus;
+  isLoading: boolean;
+  isError: boolean;
   previewRef: RefObject<HTMLDivElement | null>;
   isCreating: boolean;
-  repositoryKind: RepositoryKind;
+  dataSource: DataSource;
   getBoardRect: () => DOMRect | null;
   onBoardPointerDown: (event: React.PointerEvent) => void;
   onBoardDoubleClick: (event: React.MouseEvent) => void;
-  onClear: () => void;
-  onRepositoryChange: (kind: RepositoryKind) => void;
+  onClear: () => Promise<void>;
+  /** Seeds a batch of random empty cards (the "Simulate 100 cards" action). */
+  onSeed: () => Promise<void>;
+  onDataSourceChange: (dataSource: DataSource) => void;
   noteHandlers: NoteInteractionHandlers;
 }

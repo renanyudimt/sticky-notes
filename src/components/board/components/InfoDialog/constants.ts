@@ -15,6 +15,7 @@ export const INFO_DIALOG = {
   triggerLabel: 'How to use',
   title: 'How to use Sticky Notes',
   description: 'A quick guide to every board interaction.',
+  seedLabel: 'Simulate 100 empty cards',
 } as const;
 
 export const INFO_SECTIONS: readonly InfoSection[] = [

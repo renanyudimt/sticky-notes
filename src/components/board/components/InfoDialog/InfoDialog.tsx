@@ -1,14 +1,16 @@
-import { memo } from "react";
-import { Info } from "lucide-react";
+import { memo, useCallback, useState } from "react";
+import { Info, Sparkles } from "lucide-react";
 
 import {
   Button,
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  Spinner,
 } from "@/components/shared/components/ui";
 
 import { INFO_DIALOG, INFO_SECTIONS } from "./constants";
@@ -20,10 +22,27 @@ import {
   InfoItemTitle,
   InfoList,
 } from "./styles";
+import type { InfoDialogProps } from "./types";
 
-function InfoDialogBase() {
+function InfoDialogBase({ onSeed }: InfoDialogProps) {
+  const [open, setOpen] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  // Seeds the cards, then closes the dialog on success so the result is visible.
+  const handleSeed = useCallback(async () => {
+    setIsSeeding(true);
+    try {
+      await onSeed();
+      setOpen(false);
+    } catch {
+      // Error surfaced by the global mutation handler; keep the dialog open.
+    } finally {
+      setIsSeeding(false);
+    }
+  }, [onSeed]);
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           variant="ghost"
@@ -58,13 +77,16 @@ function InfoDialogBase() {
             );
           })}
         </InfoList>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={handleSeed} disabled={isSeeding}>
+            {isSeeding ? <Spinner /> : <Sparkles />}
+            {INFO_DIALOG.seedLabel}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-// Memoized: InfoDialog is fully static (no props), so it bails on every parent
-// re-render. The Toolbar legitimately re-renders when `noteCount` changes
-// (count label + Clear all enabled state); this keeps that from re-rendering
-// the info button along with it.
 export const InfoDialog = memo(InfoDialogBase);

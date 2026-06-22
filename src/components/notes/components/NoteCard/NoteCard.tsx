@@ -6,6 +6,7 @@ import type { NoteColor, ResizeDirection } from "../../types";
 import { NoteCardHeader } from "../NoteCardHeader";
 import { NoteEditorConnector } from "../NoteEditorConnector";
 import { RESIZE_DIRECTIONS, ResizeHandle } from "../ResizeHandle";
+import { DRAG_Z_INDEX } from "./constants";
 import { NoteSurface } from "./styles";
 import type { NoteCardProps } from "./types";
 
@@ -21,6 +22,7 @@ function NoteCardBase({
   onResize,
   onResizeEnd,
   onColorChange,
+  onEditText,
   onDelete,
 }: NoteCardProps) {
   const { id } = note;
@@ -48,6 +50,14 @@ function NoteCardBase({
     [onFocus, startResize, id],
   );
 
+  const handleHeaderPointerDown = useCallback(
+    (event: React.PointerEvent) => {
+      event.stopPropagation();
+      startMove(event);
+    },
+    [startMove],
+  );
+
   const handleColorChange = useCallback(
     (color: NoteColor) => onColorChange(id, color),
     [onColorChange, id],
@@ -64,7 +74,7 @@ function NoteCardBase({
         top: note.position.y,
         width: note.size.width,
         height: note.size.height,
-        zIndex,
+        zIndex: isMoving ? DRAG_Z_INDEX : zIndex,
       }}
       onPointerDown={() => onFocus(id)}
       $color={note.color}
@@ -75,10 +85,10 @@ function NoteCardBase({
         color={note.color}
         onColorChange={handleColorChange}
         onDelete={handleDelete}
-        onPointerDown={startMove}
+        onPointerDown={handleHeaderPointerDown}
       />
 
-      <NoteEditorConnector id={id} />
+      <NoteEditorConnector id={id} onEditText={onEditText} />
 
       {RESIZE_DIRECTIONS.map((direction) => (
         <ResizeHandle

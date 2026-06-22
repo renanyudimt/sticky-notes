@@ -1,0 +1,1 @@
+export { useNotesActivity } from "./useNotesActivity";

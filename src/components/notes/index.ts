@@ -8,6 +8,7 @@ export {
   NOTE_COLOR_OPTIONS,
 } from './constants';
 export {
+  buildSeedNotes,
   clampPosition,
   clampSize,
   createNote,
@@ -18,23 +19,28 @@ export {
 export type { ResizeConstraints } from './utils';
 export {
   notesLocalStore,
-  notesRestStore,
-  resetNotesStores,
-  switchBackend,
-  useBackendStore,
-  useNote,
-  useNoteActions,
+  dataSourceStore,
+  useDataSource,
   useNoteIds,
-  useNotePendingDelete,
-  useNotesList,
-  useNotesStatus,
-  useNotesStore,
-  useNoteText,
   useNoteView,
-  useRepositoryKind,
+  useNoteText,
+  useNotesLoading,
+  useNotesError,
+  useNotesMutations,
+  resetNotesStore,
+  resetDataSourceStore,
+  getDragState,
+  resetDragState,
+  setDragging,
+  setOverTrash,
+  useNotePendingDelete,
   useTrashActive,
+  beginActivity,
+  endActivity,
+  resetActivityState,
+  useNotesActivity,
 } from './store';
-export type { NotesState, NotesStatus } from './store';
+export type { NotesMutations, NoteActivity } from './store';
 export { useNoteMove, useNoteResize } from './hooks';
 export {
   NoteCard,

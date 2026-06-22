@@ -9,9 +9,14 @@ export const BOARD_STRINGS = {
   trashLabel: "Drag a note here to delete it",
   noteCount: (count: number) => (count === 1 ? "1 note" : `${count} notes`),
   storageLabel: "Storage",
+  activity: {
+    creating: "Creating note…",
+    editing: "Editing note…",
+    deleting: "Deleting note…",
+  },
 } as const;
 
 export const REPOSITORY_OPTIONS: readonly RepositoryOption[] = [
   { value: "local", label: "Local" },
-  { value: "rest", label: "API" },
+  { value: "api", label: "API" },
 ];
