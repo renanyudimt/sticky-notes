@@ -1,9 +1,10 @@
 # 🗒️ Sticky Notes
 
-Single-page sticky‑notes board built with **React 19 + TypeScript (strict)** and **Vite**.
-All the core interactions (create, move, resize, delete‑by‑drag) are implemented
-**from scratch on top of Pointer Events** — no drag/resize libraries. Tailwind v4
-and a couple of shadcn/ui primitives are used only for the surrounding chrome.
+Single-page sticky‑notes board built with **React 19 + TypeScript (strict)** and
+**Vite**. All the core interactions (create, move, resize, delete‑by‑drag) are
+implemented **from scratch on top of Pointer Events** — no drag/resize libraries.
+The surrounding chrome is styled with **styled-components** on top of a small set
+of **hand‑rolled UI primitives** (button, dialog, popover, spinner, toast).
 
 ## Features
 
@@ -20,7 +21,8 @@ and a couple of shadcn/ui primitives are used only for the surrounding chrome.
 - **II** — bring note to front on interaction (z‑ordering)
 - **III** — persistence to `localStorage` (restored on reload)
 - **IV** — per‑note colors (palette popover)
-- **V** — async mock REST backend (simulated latency), switchable from the toolbar
+- **V** — switchable data source (`local` vs simulated `api` with latency),
+  modeled through React Query
 
 ## Requirements
 
@@ -52,20 +54,29 @@ resolution of 1024×768 (desktop‑first).
 
 ## Architecture
 
-Domain‑oriented modules under `src/modules`, each with a barrel `index.ts`,
-co‑located tests and a clear separation of responsibilities (SOLID):
+Feature‑oriented modules, each folder with a barrel `index.ts`, co‑located tests
+and a clear separation of responsibilities (SOLID). Imports use the `@` alias for
+`src/`.
 
 ```
-src/modules/
-├── notes/         # domain: model, store (Zustand), interaction hooks, UI
-│   ├── store/     # createNotesStore (factory) + NotesProvider + useNotes
-│   ├── hooks/     # useNoteMove, useNoteResize
-│   ├── utils/     # pure geometry: clampSize/Position, resizeRect, nextZIndex…
-│   └── components/# NoteCard, NoteEditor, NoteColorPicker, ResizeHandle
-├── board/         # the canvas: Board, Toolbar, TrashZone, CreatePreview
-│   └── hooks/     # useCreateNoteDrag, useBoardController
-├── persistence/   # NotesRepository interface + localStorage & mock‑REST impls
-└── shared/        # usePointerDrag primitive, cn/debounce, shadcn ui, theme
+src/
+├── components/
+│   ├── board/        # the canvas: Board, Toolbar, TrashZone, CreatePreview,
+│   │   │             #   ThemeToggle, ClearAllDialog, InfoDialog, ActivityIndicator
+│   │   ├── hooks/    # useBoardController, useCreateNoteDrag
+│   │   └── utils/    # normalizeRect, toBoardRect
+│   ├── notes/        # NoteCard(+Header), NoteEditor, NoteColorPicker,
+│   │   │             #   ResizeHandle, DeleteNoteDialog
+│   │   ├── hooks/    # useNoteMove, useNoteResize
+│   │   ├── store/    # Zustand stores + fine‑grained selector hooks
+│   │   └── utils/    # pure geometry: clampSize/Position, resizeRect, rectsIntersect…
+│   └── shared/       # hand‑rolled UI primitives (button, dialog, popover, spinner, toast)
+├── services/notes/   # React Query data layer: queries, mutations, keys,
+│                     #   repository (localStorage) and types
+├── query/            # createQueryClient (shared QueryClient factory)
+├── hooks/            # cross‑cutting: usePointerDrag, useDebounce, useSystemTheme
+├── lib/              # framework‑agnostic helpers (slot, debounce)
+└── theme/            # styled-components GlobalStyles + ThemeModeProvider (light/dark)
 ```
 
 ### Design notes
@@ -73,11 +84,17 @@ src/modules/
 - **Pointer Events primitive.** `usePointerDrag` tracks a single pointer via
   window listeners (so a gesture survives leaving the element) and reports
   deltas. Move, resize and create‑by‑drag are all built on it.
-- **State.** A Zustand store created per‑provider (`createNotesStore`) keeps the
-  app testable and injects the repository (Dependency Inversion). Saves are
-  debounced; hydration is async with loading/error states.
-- **Persistence.** The board depends only on the `NotesRepository` interface;
-  `localStorage` and the async mock‑REST backend are interchangeable
-  implementations selectable from the toolbar.
-- **Testing.** 120+ Vitest + Testing‑Library tests, ~94% coverage. Logic is
-  tested at the unit level (utils, store, hooks) and components by behavior.
+- **State.** UI/interaction state lives in focused **Zustand** stores
+  (`notesLocalStore`, `dataSourceStore`, `dragStore`, `activityStore`), each
+  exposing fine‑grained selector hooks to keep re‑renders minimal. The async data
+  layer is handled by **TanStack React Query** (queries/mutations under
+  `services/notes`).
+- **Persistence.** `notesRepository` reads/writes notes to `localStorage`. The
+  `local` and `api` data sources use separate storage keys; `api` adds a
+  simulated latency to exercise loading/error states through React Query, and the
+  active source is switchable from the toolbar.
+- **Styling.** styled-components with a typed theme and a `ThemeModeProvider`
+  (light/dark, following the system preference), plus a small set of accessible UI
+  primitives built in‑house rather than pulled from a component library.
+- **Testing.** 300+ Vitest + Testing‑Library tests, ~95% line coverage. Logic is
+  tested at the unit level (utils, stores, hooks) and components by behavior.
